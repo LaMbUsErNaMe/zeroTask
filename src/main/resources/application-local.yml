@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: zero
+  datasource:
+    url: ${DB_DATABASE_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+server:
+  port: ${SPRING_PORT:8080}
