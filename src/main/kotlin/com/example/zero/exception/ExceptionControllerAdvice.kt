@@ -1,6 +1,5 @@
 package com.example.zero.exception
 
-import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -30,8 +29,8 @@ class ExceptionControllerAdvice {
         return ResponseEntity(error, HttpStatus.NOT_FOUND)
     }
 
-    @ExceptionHandler(WrongEnumException::class)
-    fun handleWrongEnum(ex: WrongEnumException): ResponseEntity<ErrorMessageModel> {
+    @ExceptionHandler(DuplicateException::class)
+    fun handleWrongEnum(ex: DuplicateException): ResponseEntity<ErrorMessageModel> {
         val error = ErrorMessageModel(
             HttpStatus.BAD_REQUEST.value(), ex.message
         )

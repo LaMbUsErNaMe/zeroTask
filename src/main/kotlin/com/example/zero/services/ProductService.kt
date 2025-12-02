@@ -4,16 +4,15 @@ import com.example.zero.dto.request.ProductRequestDto
 import com.example.zero.dto.request.patch.ProductPatchRequestDto
 import com.example.zero.dto.request.update.ProductUpdateRequestDto
 import com.example.zero.dto.response.ProductResponseDto
-import com.example.zero.enums.Category
+import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
-import com.example.zero.exception.WrongEnumException
 import com.example.zero.mapper.ProductMapper
 import com.example.zero.repository.ProductRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 /**
  * Сервис - слой бизнес логики. Те же CRUD которые вызывает контроллер отсюда
@@ -49,6 +48,8 @@ class ProductService(
 ) {
 
     fun save(dto: ProductRequestDto): ProductResponseDto {
+        if(productRepository.existsByProductNumber(dto.productNumber))
+            throw DuplicateException("Такой артикул уже есть в базе!")
         val entity = productMapper.toEntity(dto)
         val saved = productRepository.save(entity)
         return productMapper.toDto(saved)

@@ -2,6 +2,7 @@ package com.example.zero.entity
 
 import com.example.zero.enums.Category
 import jakarta.persistence.*
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
 
@@ -15,7 +16,7 @@ class Product(
     var productNumber: Long,
     var description: String,
     var category: Category,
-    var price: Double,
+    var price: BigDecimal,
     var quantity: Int,
     var timeStampQuantityChanged: LocalDateTime? = null,
     var timeStampCreated: LocalDateTime? = null,

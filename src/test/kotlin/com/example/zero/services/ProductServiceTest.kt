@@ -9,15 +9,21 @@ import com.example.zero.exception.NotFoundException
 import com.example.zero.mapper.ProductMapper
 import com.example.zero.repository.ProductRepository
 import com.example.zero.services.ProductService
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class ProductServiceTest {
@@ -38,7 +44,7 @@ class ProductServiceTest {
             productNumber = 452345324522,
             description = "характеристики",
             category = Category.SMARTPHONES,
-            price = 99999.0,
+            price = BigDecimal.valueOf(99999.0),
             quantity = 5
         )
 
@@ -89,7 +95,7 @@ class ProductServiceTest {
             productNumber = 123421341235,
             description = "jgbcfgfdg",
             category = Category.SMARTPHONES,
-            price = 93459.99,
+            price = BigDecimal.valueOf(93459.99),
             quantity = 999,
             timeStampCreated = LocalDateTime.now(),
             timeStampQuantityChanged = LocalDateTime.now(),
@@ -130,7 +136,7 @@ class ProductServiceTest {
             productNumber = 123,
             description = "Desc",
             category = Category.SMARTPHONES,
-            price = 100.0,
+            price = BigDecimal.valueOf(100.0),
             quantity = 10,
             timeStampCreated = LocalDateTime.now(),
             timeStampQuantityChanged = oldTimestamp
@@ -140,7 +146,7 @@ class ProductServiceTest {
             name = "updated",
             description = "updated desc",
             category = Category.SMARTPHONES,
-            price = 200.0,
+            price = BigDecimal.valueOf(200.0),
             quantity = 99
         )
 
@@ -190,7 +196,7 @@ class ProductServiceTest {
             productNumber = 123,
             description = "Desc",
             category = Category.SMARTPHONES,
-            price = 100.0,
+            price = BigDecimal.valueOf(100.0),
             quantity = 10,
             timeStampCreated = LocalDateTime.now(),
             timeStampQuantityChanged = oldTimestamp
@@ -200,7 +206,7 @@ class ProductServiceTest {
             name = "Phone Updated",
             description = "New desc",
             category = Category.SMARTPHONES,
-            price = 150.0,
+            price = BigDecimal.valueOf(150.0),
             quantity = 10
         )
 

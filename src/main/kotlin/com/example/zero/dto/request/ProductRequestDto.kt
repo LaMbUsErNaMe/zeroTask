@@ -7,8 +7,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
-import java.time.LocalDateTime
-import java.util.UUID
+import java.math.BigDecimal
 
 @Schema(description = "DTO Для добавления товара.")
 data class ProductRequestDto(
@@ -48,9 +47,9 @@ data class ProductRequestDto(
     @field:Schema(
         description = "Стоимость",
         example = "99999.99",
-        type = "Double",
+        type = "BigDecimal",
     )
-    val price: Double,
+    val price: BigDecimal,
 
     @NotNull @PositiveOrZero
     @field:Schema(

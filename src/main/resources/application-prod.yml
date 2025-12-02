@@ -1,8 +1,12 @@
 spring:
+  config:
+    import: "credentals.yml"
+  liquibase:
+    enabled: true
   application:
     name: zero
   datasource:
-    url: jdbc:postgresql://serviceServerBankBS:5432/storage
+    url: ${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver

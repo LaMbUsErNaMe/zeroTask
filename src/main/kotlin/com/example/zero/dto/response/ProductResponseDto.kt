@@ -2,6 +2,7 @@ package com.example.zero.dto.response
 
 import com.example.zero.enums.Category
 import io.swagger.v3.oas.annotations.media.Schema
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -45,10 +46,10 @@ data class ProductResponseDto(
 
     @field:Schema(
         description = "Стоимость",
-        example = "99999.99",
-        type = "Double",
+        example = "9999999",
+        type = "BigDecimal",
     )
-    val price: Double,
+    val price: BigDecimal,
 
     @field:Schema(
         description = "Кол-во",
