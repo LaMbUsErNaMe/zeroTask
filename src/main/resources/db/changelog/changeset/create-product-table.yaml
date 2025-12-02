@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-products
+      author: Vlad
+      changes:
+        - createTable:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: category
+                  type: smallint
+
+              - column:
+                  name: description
+                  type: varchar(255)
+
+              - column:
+                  name: name
+                  type: varchar(255)
+
+              - column:
+                  name: price
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: product_number
+                  type: bigint
+
+              - column:
+                  name: quantity
+                  type: integer
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: time_stamp_created
+                  type: timestamp(6)
+
+              - column:
+                  name: time_stamp_quantity_changed
+                  type: timestamp(6)
+
+        - addUniqueConstraint:
+            tableName: products
+            columnNames: product_number
+            constraintName: uklqi8h5lsinp980wucgpo1ubxe
+
+        - sql:
+            sql: ALTER TABLE products ADD CONSTRAINT products_category_check CHECK (category >= 0 AND category <= 4)
