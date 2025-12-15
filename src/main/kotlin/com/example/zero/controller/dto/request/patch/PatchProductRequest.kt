@@ -1,13 +1,14 @@
-package com.example.zero.dto.request.patch
+package com.example.zero.controller.dto.request.patch
 
-import com.example.zero.enums.Category
+import com.example.zero.enums.CategoryType
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
+import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 
 @Schema(description = "DTO Для частичного обновления товара.")
-data class ProductPatchRequestDto(
+data class PatchProductRequest(
 
     @field:Schema(
         description = "Наименование",
@@ -16,7 +17,14 @@ data class ProductPatchRequestDto(
     )
     val name: String?,
 
+    @field:Schema(
+        description = "Артикул",
+        example = "238487923491234",
+        type = "Long",
+    )
+    val productNumber: Long?,
 
+    @field:Size(min = 1, message = "Описание не может быть пустым!")
     @field:Schema(
         description = "Описание техники",
         example = "Характеристики телефона",
@@ -30,9 +38,9 @@ data class ProductPatchRequestDto(
         example = "SMARTPHONES",
         type = "enum",
     )
-    val category: Category?,
+    val categoryType: CategoryType?,
 
-    @Positive
+    @field:Positive(message = "Цена должна быть положительной и не равна нулю!")
     @field:Schema(
         description = "Стоимость",
         example = "99999.99",
@@ -40,11 +48,11 @@ data class ProductPatchRequestDto(
     )
     val price: BigDecimal?,
 
-    @PositiveOrZero
+    @field:PositiveOrZero(message = "Кол-во не может быть отрицательным!")
     @field:Schema(
         description = "Кол-во",
         example = "99",
-        type = "int",
+        type = "BigDecimal",
     )
-    val quantity: Int?,
+    val quantity: BigDecimal?,
 )

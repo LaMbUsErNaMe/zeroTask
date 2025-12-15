@@ -1,3 +1,3 @@
 package com.example.zero.exception
 
-class DuplicateException(message: String) : RuntimeException(message) {}
+class DuplicateException(message: String) : RuntimeException(message)

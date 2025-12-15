@@ -1,14 +1,15 @@
-package com.example.zero.dto.response
+package com.example.zero.controller.dto.response
 
-import com.example.zero.enums.Category
+import com.example.zero.enums.CategoryType
 import io.swagger.v3.oas.annotations.media.Schema
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Schema(description = "DTO Для товара.")
 
-data class ProductResponseDto(
+data class ResponseProduct(
     @field:Schema(
         description = "Идентификатор",
         example = "d0d3ef60-244f-4ddd-8061-3259931bdb20",
@@ -35,14 +36,14 @@ data class ProductResponseDto(
         example = "Характеристики телефона",
         type = "String",
     )
-    val description: String,
+    val description: String?,
 
     @field:Schema(
         description = "A year when this car was made",
         example = "SMARTPHONES",
         type = "String",
     )
-    val category: Category,
+    val categoryType: CategoryType,
 
     @field:Schema(
         description = "Стоимость",
@@ -54,9 +55,9 @@ data class ProductResponseDto(
     @field:Schema(
         description = "Кол-во",
         example = "99",
-        type = "int",
+        type = "BigDecimal",
     )
-    val quantity: Int,
+    val quantity: BigDecimal,
 
     @field:Schema(
         description = "Время последнего ред. кол-ва",
@@ -70,5 +71,5 @@ data class ProductResponseDto(
         example = "2025-11-30 18:58:06.174402",
         type = "LocalDateTime",
     )
-    val timeStampCreated: LocalDateTime,
+    val timeStampCreated: LocalDate,
 )

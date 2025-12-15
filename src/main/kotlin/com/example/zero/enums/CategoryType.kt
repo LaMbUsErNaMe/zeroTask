@@ -1,6 +1,6 @@
 package com.example.zero.enums
 
-enum class Category {
+enum class CategoryType {
     SMARTPHONES,
     LAPTOPS,
     TVS,
@@ -13,6 +13,6 @@ enum class Category {
      * лучше в дто что, стринг или енам
      */
     companion object {
-        val names by lazy { Category.values().map{ it.name } }
+        val names by lazy { CategoryType.values().map{ it.name } }
     }
 }

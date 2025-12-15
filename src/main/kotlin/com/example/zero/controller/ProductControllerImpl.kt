@@ -49,18 +49,53 @@ import javax.validation.Valid
  * patch - ринимаем нужный dto, валидируем отсдаём сервису
  */
 
-interface ProductController{
+@RestController
+@RequestMapping("/products")
 
-    fun create(dto: CreateProductRequest): UUID
+class ProductControllerImpl(
+    private val productService: ProductService
+) : ProductController {
 
-    fun getAll(pageable: Pageable): Page<ResponseProduct>
+    @Operation(summary = "Добавить товар")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    override fun create(@Valid @RequestBody dto: CreateProductRequest): UUID {
+        return productService.save(dto.toCreateProductServiceDto())
+    }
 
-    fun getById(id: UUID): ResponseProduct
+    @Operation(summary = "Получить все товары")
+    @GetMapping
+    override fun getAll(pageable: Pageable): Page<ResponseProduct> {
+        return  productService.findAll(pageable).map { it.toProductResponseDto() }
+    }
 
-    fun delete(id: UUID)
+    @Operation(summary = "Получить товар по идентификатору")
+    @GetMapping("/{id}")
+    override fun getById(@PathVariable id: UUID): ResponseProduct {
+        return productService.findById(id).toProductResponseDto()
+    }
 
-    fun update(id: UUID, dto: UpdateProductRequest)
+    @Operation(summary = "Удаление товара по идентификатору")
+    @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
+    override fun delete(@PathVariable id: UUID) {
+        productService.deleteById(id)
+    }
 
-    fun patch(id: UUID, dto: PatchProductRequest)
+    @Operation(summary = "Изменение всех полей")
+    @PutMapping("/{id}")
+    override fun update(
+        @PathVariable id: UUID, @Valid @RequestBody dto: UpdateProductRequest
+    ){
+        return productService.update(id, dto.toUpdateProductServiceDto())
+    }
+
+    @Operation(summary = "Изменение части полей")
+    @PatchMapping("/{id}")
+    override fun patch(
+        @PathVariable id: UUID,
+        @Valid @RequestBody dto: PatchProductRequest
+    ){
+        return productService.patch(id, dto.toPatchProductServiceDto())
+    }
 
 }

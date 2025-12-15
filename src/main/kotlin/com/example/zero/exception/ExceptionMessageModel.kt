@@ -6,9 +6,8 @@ import java.time.LocalDateTime
  * Шаблон для ошибки статус сообщение время
  */
 
-class ErrorMessageModel (
+class ExceptionMessageModel (
     var status: Int? = null,
-    var message: String? = null,
+    var message: Any? = null,
     var timestamp: LocalDateTime = LocalDateTime.now()
 )
-

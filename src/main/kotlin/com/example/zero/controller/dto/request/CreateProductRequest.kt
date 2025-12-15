@@ -1,17 +1,18 @@
-package com.example.zero.dto.request
+package com.example.zero.controller.dto.request
 
-import com.example.zero.enums.Category
+import com.example.zero.enums.CategoryType
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.persistence.Column
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
+import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 
 @Schema(description = "DTO Для добавления товара.")
-data class ProductRequestDto(
-    @NotNull @NotBlank
+data class CreateProductRequest(
+    @field:NotNull(message = "Имя не может быть null!")
+    @field:NotBlank(message = "Имя не может быть пустым!")
     @field:Schema(
         description = "Наименование",
         example = "Samsung Galaxy Note 7",
@@ -19,7 +20,7 @@ data class ProductRequestDto(
     )
     val name: String,
 
-    @Column(unique = true) @NotNull
+    @field:NotNull(message = "Артикул не может быть null!")
     @field:Schema(
         description = "Артикул",
         example = "238487923491234",
@@ -27,23 +28,24 @@ data class ProductRequestDto(
     )
     val productNumber: Long,
 
-    @NotNull @NotBlank
+    @field:Size(min = 1, message = "Описание не может быть пустым!")
     @field:Schema(
         description = "Описание техники",
         example = "Характеристики телефона",
         type = "String",
     )
-    val description: String,
+    val description: String?,
 
-    @NotNull
+    @field:NotNull(message = "категория не может быть null!")
     @field:Schema(
         description = "категория",
         example = "SMARTPHONES",
         type = "enum",
     )
-    val category: Category,
+    val categoryType: CategoryType,
 
-    @NotNull @Positive
+    @field:NotNull(message = "Стоимость не может быть null!")
+    @field:Positive(message = "Цена должна быть положительной и не равна нулю!")
     @field:Schema(
         description = "Стоимость",
         example = "99999.99",
@@ -51,11 +53,12 @@ data class ProductRequestDto(
     )
     val price: BigDecimal,
 
-    @NotNull @PositiveOrZero
+    @field:NotNull(message = "Кол-во не может быть null!")
+    @field:PositiveOrZero(message = "Кол-во не может быть отрицательным!")
     @field:Schema(
         description = "Кол-во",
         example = "99",
-        type = "int",
+        type = "BigDecimal",
     )
-    val quantity: Int,
+    val quantity: BigDecimal,
 )
