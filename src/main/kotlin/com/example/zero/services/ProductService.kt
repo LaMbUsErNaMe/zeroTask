@@ -1,5 +1,6 @@
 package com.example.zero.services
 
+import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.services.dto.ProductDto
 import com.example.zero.services.dto.CreateProductServiceDto
 import com.example.zero.services.dto.PatchProductServiceDto
@@ -21,5 +22,7 @@ interface ProductService {
     fun update(id: UUID, dto: UpdateProductServiceDto)
 
     fun patch(id: UUID, dto: PatchProductServiceDto)
+
+    fun existsChekAndGetProduct(id: UUID) : ProductEntity
 
 }

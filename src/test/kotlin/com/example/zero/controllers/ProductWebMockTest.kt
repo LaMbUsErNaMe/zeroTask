@@ -18,6 +18,8 @@ import io.mockk.just
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -107,6 +109,44 @@ class ProductWebMockTest{
     }
 
     @Test
+    fun `getAll 200`() {
+
+        val productId = UUID.randomUUID()
+
+        val productDto = ProductDto(
+            id = productId,
+            name = "Comp",
+            productNumber = 123,
+            description = null,
+            categoryType = CategoryType.COMPUTERS,
+            price = BigDecimal(1234),
+            quantity = BigDecimal(99),
+            timeStampQuantityChanged = LocalDateTime.now(),
+            timeStampCreated = LocalDate.now()
+        )
+
+        val pageable = PageRequest.of(0, 10)
+        val page = PageImpl(listOf(productDto), pageable, 1)
+
+        every { productService.findAll(any()) } returns page
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/products")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content").isArray)
+            .andExpect(jsonPath("$.content[0].id").value(productId.toString()))
+            .andExpect(jsonPath("$.content[0].name").value("Comp"))
+            .andExpect(jsonPath("$.content[0].productNumber").value(123))
+            .andExpect(jsonPath("$.content[0].price").value(1234))
+            .andExpect(jsonPath("$.content[0].quantity").value(99))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.totalPages").value(1))
+    }
+
+    @Test
     fun `put 200`() {
 
         val productId = UUID.randomUUID()
@@ -171,29 +211,24 @@ class ProductWebMockTest{
 
         every { productService.deleteById(productId) } just Runs
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/products/$productId")
-            ).andExpect(status().is2xxSuccessful)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/products/$productId"))
+            .andExpect(status().is2xxSuccessful)
     }
 
-//    @Test
-//    fun `validation CreateProductRequest`()  {
-//
-//        val createProductRequest = CreateProductRequest(
-//            name = "",
-//            productNumber = 123,
-//            description = null,
-//            categoryType = CategoryType.COMPUTERS,
-//            price = BigDecimal(1234),
-//            quantity = BigDecimal(99),
-//        )
-//        val mvcResult = mockMvc.perform(
-//            MockMvcRequestBuilders.post("/products")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(mapper.writeValueAsString(createProductRequest))
-//        ).andExpect(status().is2xxSuccessful).andReturn()
-//
-//        mvcResult.getResolvedException()
-//
-//    }
+    @Test
+    fun `validation CreateProductRequest`()  {
+        val createProductRequest = CreateProductRequest(
+            name = "",
+            productNumber = 123,
+            description = null,
+            categoryType = CategoryType.COMPUTERS,
+            price = BigDecimal(1234),
+            quantity = BigDecimal(99),
+        )
+        mockMvc.perform(MockMvcRequestBuilders.post("/products")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(createProductRequest)))
+            .andExpect(status().isBadRequest)
+    }
 
 }

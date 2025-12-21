@@ -4,12 +4,12 @@ import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductDto
 import com.example.zero.extension.toProductEntity
+import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository
 import com.example.zero.services.dto.ProductDto
 import com.example.zero.services.dto.CreateProductServiceDto
 import com.example.zero.services.dto.PatchProductServiceDto
 import com.example.zero.services.dto.UpdateProductServiceDto
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -61,34 +61,29 @@ class ProductServiceImpl(
     }
     @Transactional
     override fun deleteById(id: UUID) {
-        if (!productRepository.existsById(id)) {
-            throw NotFoundException("Товар [$id] для удаления не найден")
-        }
-        productRepository.deleteById(id);
+        existsChekAndGetProduct(id)
+        productRepository.deleteById(id)
     }
 
     override fun findById(id: UUID): ProductDto {
-
-        val product = productRepository.findByIdOrNull(id)
-            ?: throw NotFoundException("Товар [$id] не найден")
+        val product = existsChekAndGetProduct(id)
         return product.toProductDto()
     }
 
     override fun findAll(pageable: Pageable): Page<ProductDto> {
-        return productRepository.findAll(pageable).map{ it.toProductDto() };
+        return productRepository.findAll(pageable).map{ it.toProductDto() }
     }
 
     @Transactional
-    override fun update(id: UUID, dto: UpdateProductServiceDto){ //
-        val product = productRepository.findById(id)
-            .orElseThrow { NotFoundException("Товар [$id] для изменения не найден") }
+    override fun update(id: UUID, dto: UpdateProductServiceDto){
+        val product = existsChekAndGetProduct(id)
 
         if(product.productNumber != dto.productNumber &&
             productRepository.existsByProductNumber(dto.productNumber))
             throw DuplicateException("Такой артикул уже есть в базе!")
 
-        val oldQVal = product.quantity
-        if (oldQVal != dto.quantity) {
+        val oldQuantity = product.quantity
+        if (oldQuantity != dto.quantity) {
             product.quantityChangedDateTime = LocalDateTime.now()
         }
 
@@ -103,8 +98,7 @@ class ProductServiceImpl(
 
     @Transactional
     override fun patch(id: UUID, dto: PatchProductServiceDto) {
-        val product = productRepository.findById(id)
-            .orElseThrow { NotFoundException("Товар [$id] для изменения не найден") }
+        val product = existsChekAndGetProduct(id)
 
         if(dto.productNumber != null && product.productNumber != dto.productNumber &&
             productRepository.existsByProductNumber(dto.productNumber))
@@ -124,5 +118,9 @@ class ProductServiceImpl(
             }
         }
         productRepository.save(product)
+    }
+
+    override fun existsChekAndGetProduct(id: UUID): ProductEntity {
+        return productRepository.findByIdOrNull(id) ?: throw NotFoundException("Товар [$id] не найден!")
     }
 }
