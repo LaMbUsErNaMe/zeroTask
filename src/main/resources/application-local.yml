@@ -1,0 +1,21 @@
+spring:
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    default-schema: product_schema
+  application:
+    name: zero
+  datasource:
+    url: ${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Europe/Samara
+        default-schema: product_schema
+    hibernate:
+      ddl-auto: validate
+server:
+  port: 8080
