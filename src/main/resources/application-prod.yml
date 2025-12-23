@@ -1,7 +1,7 @@
 app:
   schedule:
     enabled: true
-    optimization: true
+    optimization: false
     period: 60000
     priceIncreasePercentage: 1.101
 springdoc:

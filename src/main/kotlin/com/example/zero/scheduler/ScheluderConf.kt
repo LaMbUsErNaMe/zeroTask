@@ -1,4 +1,4 @@
-package com.example.zero.scheluder
+package com.example.zero.scheduler
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Configuration

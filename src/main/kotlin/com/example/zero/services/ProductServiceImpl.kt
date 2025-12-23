@@ -16,7 +16,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.queryForList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
@@ -55,13 +54,10 @@ import java.util.UUID
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
     private val jdbcTemplate: JdbcTemplate
-
-
-
 ): ProductService {
 
-    @Value("\${app.schedule.priceIncreasePercentage}")
-    lateinit var priceIncrease: String
+    @field:Value($$"${app.schedule.priceIncreasePercentage}")
+    lateinit var priceIncrease: BigDecimal
 
     @Transactional
     override fun save(dto: CreateProductServiceDto): UUID {
@@ -137,8 +133,8 @@ class ProductServiceImpl(
     @Transactional
     override fun priceUp() {
         println("SIMPLE SCHEDULER START")
-        val products = productRepository.findAll().asSequence()
-            .onEach{ it.price = it.price.multiply(BigDecimal(priceIncrease)) }.toList()
+        val products = productRepository.findAllWithLock().asSequence()
+            .onEach{ it.price = it.price.multiply(priceIncrease) }.toList()
         productRepository.saveAll(products)
         println("SIMPLE SCHEDULER END")
     }
@@ -153,7 +149,7 @@ class ProductServiceImpl(
         { resultSet ->
             val id: UUID = resultSet.getObject("id", UUID::class.java)
             val price = resultSet.getBigDecimal("price")
-            val newPrice = price.multiply(BigDecimal(priceIncrease))
+            val newPrice = price.multiply(priceIncrease)
 
             jdbcTemplate.update("UPDATE product_schema.products SET price = ? WHERE id = ?", newPrice, id)
             log.add(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
