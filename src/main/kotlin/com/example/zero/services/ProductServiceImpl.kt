@@ -1,5 +1,6 @@
 package com.example.zero.services
 
+import com.example.zero.annotation.MeasureExecTime
 import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductDto
@@ -10,11 +11,16 @@ import com.example.zero.services.dto.ProductDto
 import com.example.zero.services.dto.CreateProductServiceDto
 import com.example.zero.services.dto.PatchProductServiceDto
 import com.example.zero.services.dto.UpdateProductServiceDto
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.queryForList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.File
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -47,10 +53,16 @@ import java.util.UUID
 
 @Service
 class ProductServiceImpl(
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val jdbcTemplate: JdbcTemplate
+
 
 
 ): ProductService {
+
+    @Value("\${app.schedule.priceIncreasePercentage}")
+    lateinit var priceIncrease: String
+
     @Transactional
     override fun save(dto: CreateProductServiceDto): UUID {
         if(productRepository.existsByProductNumber(dto.productNumber)){
@@ -59,12 +71,14 @@ class ProductServiceImpl(
         val saved = productRepository.save(dto.toProductEntity())
         return saved.id!!
     }
+
     @Transactional
     override fun deleteById(id: UUID) {
         existsChekAndGetProduct(id)
         productRepository.deleteById(id)
     }
 
+    @MeasureExecTime
     override fun findById(id: UUID): ProductDto {
         val product = existsChekAndGetProduct(id)
         return product.toProductDto()
@@ -118,6 +132,46 @@ class ProductServiceImpl(
             }
         }
         productRepository.save(product)
+    }
+
+    @Transactional
+    override fun priceUp() {
+        println("SIMPLE SCHEDULER START")
+        val products = productRepository.findAll().asSequence()
+            .onEach{ it.price = it.price.multiply(BigDecimal(priceIncrease)) }.toList()
+        productRepository.saveAll(products)
+        println("SIMPLE SCHEDULER END")
+    }
+
+    @Transactional
+    override fun priceUpOpt() {
+        var inc = 1
+        val log = ArrayList<String>()
+        val file = File("opt_sheluder_log.txt")
+        println("OPT SCHEDULER START")
+        jdbcTemplate.query("""SELECT id, price FROM product_schema.products FOR UPDATE""")
+        { resultSet ->
+            val id: UUID = resultSet.getObject("id", UUID::class.java)
+            val price = resultSet.getBigDecimal("price")
+            val newPrice = price.multiply(BigDecimal(priceIncrease))
+
+            jdbcTemplate.update("UPDATE product_schema.products SET price = ? WHERE id = ?", newPrice, id)
+            log.add(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
+            inc++
+        }
+        try {
+            val fileContent = log.joinToString(separator = "\n")
+
+            file.writeText(fileContent)
+            println("Successfully wrote log")
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        log.clear()
+
+        println("OPT SCHEDULER END")
     }
 
     override fun existsChekAndGetProduct(id: UUID): ProductEntity {
