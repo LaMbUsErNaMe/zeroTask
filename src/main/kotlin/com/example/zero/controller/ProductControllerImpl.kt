@@ -2,13 +2,16 @@ package com.example.zero.controller
 
 import com.example.zero.controller.dto.request.CreateProductRequest
 import com.example.zero.controller.dto.request.patch.PatchProductRequest
+import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.controller.dto.request.update.UpdateProductRequest
 import com.example.zero.controller.dto.response.ResponseProduct
 import com.example.zero.extension.toCreateProductServiceDto
 import com.example.zero.extension.toPatchProductServiceDto
 import com.example.zero.extension.toProductResponseDto
 import com.example.zero.extension.toUpdateProductServiceDto
+import com.example.zero.services.ProductSearchService
 import com.example.zero.services.ProductService
+import com.example.zero.services.dto.ProductDto
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -52,7 +55,8 @@ import javax.validation.Valid
 @RequestMapping("/products")
 
 class ProductControllerImpl(
-    private val productService: ProductService
+    private val productService: ProductService,
+    private val productSearchService: ProductSearchService
 ) : ProductController {
 
     @Operation(summary = "Добавить товар")
@@ -95,6 +99,16 @@ class ProductControllerImpl(
         @Valid @RequestBody dto: PatchProductRequest
     ){
         return productService.patch(id, dto.toPatchProductServiceDto())
+    }
+
+    @Operation(summary = "Поиск по категориям")
+    @PostMapping("/search")
+    override fun search(
+        @RequestBody @Valid searchRequest: List<SearchFilterDto>,
+        pageable: Pageable
+        ): Page<ProductDto>
+    {
+            return productSearchService.search(searchRequest, pageable)
     }
 
 }

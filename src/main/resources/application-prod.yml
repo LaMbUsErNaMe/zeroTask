@@ -1,3 +1,9 @@
+app:
+  schedule:
+    enabled: true
+    optimization: true
+    period: 60000
+    priceIncreasePercentage: 1.101
 springdoc:
   swagger-ui:
     enabled: false
