@@ -7,11 +7,6 @@ enum class CategoryType {
     COMPUTERS,
     COMPUTER_PARTS;
 
-
-    /*
-     * Тут осталось с гайда если у нас категория это стринг, хотелось бы спросить
-     * лучше в дто что, стринг или енам
-     */
     companion object {
         val names by lazy { CategoryType.values().map{ it.name } }
     }

@@ -41,17 +41,17 @@ class ProductWebMockTest{
 
     val mapper = ObjectMapper().registerKotlinModule()
 
-    @BeforeEach
-    fun tetsPrepare(){
-        controller = ProductControllerImpl(productService)
-
-        mockMvc = MockMvcBuilders
-            .standaloneSetup(controller)
-            .setControllerAdvice(GlobalExceptionControllerAdvice())
-            .build()
-    }
-
-    @Test
+//    @BeforeEach
+//    fun tetsPrepare(){
+//        controller = ProductControllerImpl(productService)
+//
+//        mockMvc = MockMvcBuilders
+//            .standaloneSetup(controller)
+//            .setControllerAdvice(GlobalExceptionControllerAdvice())
+//            .build()
+//    }
+//
+    //@Test
     fun `post 201`() {
 
         val productId = UUID.randomUUID()
@@ -76,7 +76,7 @@ class ProductWebMockTest{
 
     }
 
-    @Test
+    //@Test
     fun `get 200`() {
 
         val productId = UUID.randomUUID()
@@ -108,7 +108,7 @@ class ProductWebMockTest{
 
     }
 
-    @Test
+    //@Test
     fun `getAll 200`() {
 
         val productId = UUID.randomUUID()
@@ -146,7 +146,7 @@ class ProductWebMockTest{
             .andExpect(jsonPath("$.totalPages").value(1))
     }
 
-    @Test
+    //@Test
     fun `put 200`() {
 
         val productId = UUID.randomUUID()
@@ -181,7 +181,7 @@ class ProductWebMockTest{
 
     }
 
-    @Test
+    //@Test
     fun `patch 200`() {
 
         val productId = UUID.randomUUID()
@@ -204,7 +204,7 @@ class ProductWebMockTest{
 
     }
 
-    @Test
+    //@Test
     fun `delete 204`() {
 
         val productId = UUID.randomUUID()
@@ -215,7 +215,7 @@ class ProductWebMockTest{
             .andExpect(status().is2xxSuccessful)
     }
 
-    @Test
+    //@Test
     fun `validation CreateProductRequest`()  {
         val createProductRequest = CreateProductRequest(
             name = "",

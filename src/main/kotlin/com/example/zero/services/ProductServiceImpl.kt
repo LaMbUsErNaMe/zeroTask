@@ -1,12 +1,14 @@
 package com.example.zero.services
 
 import com.example.zero.annotation.MeasureExecTime
+import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductDto
 import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository
+import com.example.zero.persistence.repository.ProductSearchRepository
 import com.example.zero.services.dto.ProductDto
 import com.example.zero.services.dto.CreateProductServiceDto
 import com.example.zero.services.dto.PatchProductServiceDto
@@ -22,6 +24,7 @@ import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
+
 
 /**
  * Сервис - слой бизнес логики. Те же CRUD которые вызывает контроллер отсюда,
@@ -54,6 +57,7 @@ import java.util.UUID
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
     private val jdbcTemplate: JdbcTemplate
+
 ): ProductService {
 
     @field:Value($$"${app.schedule.priceIncreasePercentage}")
@@ -169,6 +173,8 @@ class ProductServiceImpl(
 
         println("OPT SCHEDULER END")
     }
+
+
 
     override fun existsChekAndGetProduct(id: UUID): ProductEntity {
         return productRepository.findByIdOrNull(id) ?: throw NotFoundException("Товар [$id] не найден!")
