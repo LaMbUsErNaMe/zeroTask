@@ -25,4 +25,8 @@ interface ProductService {
 
     fun existsChekAndGetProduct(id: UUID) : ProductEntity
 
+    fun priceUp()
+
+    fun priceUpOpt()
+
 }
