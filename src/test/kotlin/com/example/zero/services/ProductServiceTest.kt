@@ -1,6 +1,8 @@
 package com.example.zero.services
 
+import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.enums.CategoryType
+import com.example.zero.enums.OperationType
 import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductEntity
@@ -27,6 +29,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.test.junit5.JUnit5Asserter.assertEquals
 
 class ProductServiceTest {
 
