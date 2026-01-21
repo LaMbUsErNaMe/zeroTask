@@ -8,7 +8,6 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
-    default-schema: product_schema
   application:
     name: zero
   datasource:
@@ -20,7 +19,6 @@ spring:
       hibernate:
         jdbc:
           time_zone: Europe/Samara
-        default-schema: product_schema
     hibernate:
       ddl-auto: validate
 server:

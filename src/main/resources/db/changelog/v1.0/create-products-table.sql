@@ -1,8 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS product_schema;-- CHARACTER SET=utf8 COLLATE=utf8_bin;
-
-SET search_path TO product_schema;
-
-CREATE TABLE products (
+CREATE TABLE "products" (
     id UUID NOT NULL,
     name VARCHAR(99) NOT NULL,
     product_number BIGINT NOT NULL,
@@ -20,7 +16,7 @@ create index idx_products_name on products(name);
 
 create index idx_products_product_number on products(product_number);
 
-INSERT INTO "product_schema"."products" (id, name, product_number, category_type, price, quantity, quantity_changed_date_time, created_date)
+INSERT INTO "public"."products" (id, name, product_number, category_type, price, quantity, quantity_changed_date_time, created_date)
 SELECT
     gen_random_uuid(),
     'Phone model №' || gs,

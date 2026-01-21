@@ -1,6 +1,6 @@
 app:
   schedule:
-    enabled: true
+    enabled: false
     optimization: true
     period: 60000
     priceIncreasePercentage: 1.101
@@ -13,15 +13,21 @@ spring:
   thymeleaf:
     check-template-location: false
   liquibase:
-    enabled: true
+    enabled: false
     change-log: classpath:db/changelog/db.changelog-master.xml
+  sql:
+    init:
+      mode: always
+  h2:
+    console:
+      enabled: true
   application:
     name: zero
   datasource:
-    url: ${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:h2:mem:testdb;INIT=RUNSCRIPT FROM 'src/main/resources/h2init.sql';MODE=PostgreSQL;
+    driver-class-name: org.h2.Driver
   jpa:
+    show_sql: true
     properties:
       hibernate:
         show_sql: false
@@ -29,6 +35,8 @@ spring:
         jdbc:
           time_zone: Europe/Samara
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create
+      hbm2ddl:
+        auto: create
 server:
   port: 8080

@@ -1,11 +1,14 @@
 package com.example.zero.services
 
+import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.enums.CategoryType
+import com.example.zero.enums.OperationType
 import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository
+import com.example.zero.search.ProductCriteriaPredicateBuilder
 import com.example.zero.services.dto.CreateProductServiceDto
 import com.example.zero.services.dto.PatchProductServiceDto
 import com.example.zero.services.dto.UpdateProductServiceDto
@@ -21,23 +24,27 @@ import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.jdbc.core.JdbcTemplate
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.test.junit5.JUnit5Asserter.assertEquals
 
 class ProductServiceTest {
 
     private val productRepository = mockk<ProductRepository>()
+    private val productCriteriaPredicateBuilder = mockk<ProductCriteriaPredicateBuilder>()
+    private val jdbcTemplate = mockk<JdbcTemplate>()
 
     private lateinit var service: ProductServiceImpl
 
-    //@BeforeEach
-//    fun tetsPrepare(){
-//        service = ProductServiceImpl(productRepository)
-//    }
+    @BeforeEach
+    fun tetsPrepare(){
+        service = ProductServiceImpl(productRepository, productCriteriaPredicateBuilder, jdbcTemplate)
+    }
 
-    //@Test
+    @Test
     fun save_ok() {
         val dto = CreateProductServiceDto(
             name = "Product",
@@ -251,4 +258,7 @@ class ProductServiceTest {
             service.patch(id, dto)
         }
     }
+
+
+
 }

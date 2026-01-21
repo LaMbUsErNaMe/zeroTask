@@ -30,4 +30,6 @@ interface ProductService {
 
     fun priceUpOpt()
 
+    fun search(request: List<SearchFilterDto>, pageable: Pageable): Page<ProductDto>
+
 }

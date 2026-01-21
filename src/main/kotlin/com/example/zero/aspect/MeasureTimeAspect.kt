@@ -10,19 +10,19 @@ import org.springframework.stereotype.Component
 @Component
 class MeasureTimeAspect{
 
-    private val log = LoggerFactory.getLogger(MeasureTimeAspect::class.java)
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     @Around("@annotation(com.example.zero.annotation.MeasureExecTime)")
     fun measureExecTime(pjp: ProceedingJoinPoint): Any?{
         val method = pjp.signature.toShortString()
         val start = System.currentTimeMillis()
-        log.info("Function [$method] started")
+        log.debug("Function [$method] started")
 
         try {
             return pjp.proceed()
         } finally {
             val durationMs = (System.currentTimeMillis() - start)
-            log.info("Function [$method] took $durationMs ms")
+            log.debug("Function [$method] took $durationMs ms")
         }
     }
 }

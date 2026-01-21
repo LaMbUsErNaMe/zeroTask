@@ -39,8 +39,8 @@ class GlobalExceptionControllerAdvice {
         return ResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ExceptionMessageModel> {
+    @ExceptionHandler(ParsingException::class)
+    fun handleParsingException(ex: ParsingException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
             HttpStatus.BAD_REQUEST.value(), ex.message
         )
