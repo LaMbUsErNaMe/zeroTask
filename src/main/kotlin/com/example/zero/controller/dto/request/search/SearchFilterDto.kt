@@ -10,5 +10,5 @@ data class SearchFilterDto(
     @field:NotNull(message = "Поле не может быть пустым!")
     val operation: OperationType,
     @field:NotNull(message = "Поле не может быть пустым!")
-    val value: Any
+    val value: String
 )
