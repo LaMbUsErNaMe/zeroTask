@@ -1,17 +1,15 @@
 package com.example.zero.services
 
-import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.enums.CategoryType
-import com.example.zero.enums.OperationType
 import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository
 import com.example.zero.search.ProductCriteriaPredicateBuilder
-import com.example.zero.services.dto.CreateProductServiceDto
-import com.example.zero.services.dto.PatchProductServiceDto
-import com.example.zero.services.dto.UpdateProductServiceDto
+import com.example.zero.services.dto.product.CreateProductServiceDto
+import com.example.zero.services.dto.product.PatchProductServiceDto
+import com.example.zero.services.dto.product.UpdateProductServiceDto
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -29,7 +27,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.test.junit5.JUnit5Asserter.assertEquals
 
 class ProductServiceTest {
 

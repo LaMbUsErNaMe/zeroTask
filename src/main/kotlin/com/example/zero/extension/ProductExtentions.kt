@@ -1,14 +1,14 @@
 package com.example.zero.extension
 
-import com.example.zero.controller.dto.request.CreateProductRequest
-import com.example.zero.controller.dto.request.patch.PatchProductRequest
-import com.example.zero.controller.dto.request.update.UpdateProductRequest
-import com.example.zero.controller.dto.response.ResponseProduct
+import com.example.zero.controller.dto.product.request.CreateProductRequest
+import com.example.zero.controller.dto.product.request.patch.PatchProductRequest
+import com.example.zero.controller.dto.product.request.update.UpdateProductRequest
+import com.example.zero.controller.dto.product.response.ResponseProduct
 import com.example.zero.persistence.entity.ProductEntity
-import com.example.zero.services.dto.ProductDto
-import com.example.zero.services.dto.CreateProductServiceDto
-import com.example.zero.services.dto.PatchProductServiceDto
-import com.example.zero.services.dto.UpdateProductServiceDto
+import com.example.zero.services.dto.product.ProductDto
+import com.example.zero.services.dto.product.CreateProductServiceDto
+import com.example.zero.services.dto.product.PatchProductServiceDto
+import com.example.zero.services.dto.product.UpdateProductServiceDto
 
 fun CreateProductRequest.toCreateProductServiceDto() = CreateProductServiceDto(
     name = name,
@@ -48,14 +48,6 @@ fun PatchProductRequest.toPatchProductServiceDto() = PatchProductServiceDto(
     price = price,
     quantity = quantity,
 )
-
-
-
-
-
-
-
-
 
 fun ProductDto.toProductResponseDto() = ResponseProduct(
     id = id,

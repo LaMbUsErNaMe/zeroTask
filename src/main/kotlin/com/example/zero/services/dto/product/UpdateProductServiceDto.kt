@@ -1,9 +1,9 @@
-package com.example.zero.services.dto
+package com.example.zero.services.dto.product
 
 import com.example.zero.enums.CategoryType
 import java.math.BigDecimal
 
-data class CreateProductServiceDto(
+data class UpdateProductServiceDto(
     val name: String,
 
     val productNumber: Long,
