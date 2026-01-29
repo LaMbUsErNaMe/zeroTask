@@ -1,11 +1,13 @@
 package com.example.zero.controller
 
-import com.example.zero.controller.dto.request.CreateProductRequest
-import com.example.zero.controller.dto.request.patch.PatchProductRequest
-import com.example.zero.controller.dto.request.search.SearchFilterDto
-import com.example.zero.controller.dto.request.update.UpdateProductRequest
-import com.example.zero.controller.dto.response.ResponseProduct
-import com.example.zero.services.dto.ProductDto
+import com.example.zero.controller.dto.product.request.CreateProductRequest
+import com.example.zero.controller.dto.product.request.patch.PatchProductRequest
+import com.example.zero.controller.dto.product.request.search.SearchDto
+import com.example.zero.controller.dto.product.request.search.SearchFilterDto
+import com.example.zero.controller.dto.product.request.update.UpdateProductRequest
+import com.example.zero.controller.dto.product.response.ResponseProduct
+import com.example.zero.services.dto.product.ProductDto
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.UUID
@@ -46,6 +48,6 @@ interface ProductController{
 
     fun patch(id: UUID, dto: PatchProductRequest)
 
-    fun search(searchRequest: List<SearchFilterDto>, pageable: Pageable): Page<ProductDto>
+    fun search(searchRequest: SearchDto, pageable: Pageable): Page<ProductDto>
 
 }

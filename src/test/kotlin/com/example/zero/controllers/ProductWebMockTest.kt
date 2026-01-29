@@ -2,16 +2,14 @@ package com.example.zero.controllers
 
 import com.example.zero.controller.ProductController
 import com.example.zero.controller.ProductControllerImpl
-import com.example.zero.controller.dto.request.CreateProductRequest
-import com.example.zero.controller.dto.request.search.SearchFilterDto
+import com.example.zero.controller.dto.product.request.CreateProductRequest
 import com.example.zero.enums.CategoryType
-import com.example.zero.enums.OperationType
 import com.example.zero.exception.GlobalExceptionControllerAdvice
 import com.example.zero.services.ProductService
-import com.example.zero.services.dto.ProductDto
-import com.example.zero.services.dto.CreateProductServiceDto
-import com.example.zero.services.dto.PatchProductServiceDto
-import com.example.zero.services.dto.UpdateProductServiceDto
+import com.example.zero.services.dto.product.ProductDto
+import com.example.zero.services.dto.product.CreateProductServiceDto
+import com.example.zero.services.dto.product.PatchProductServiceDto
+import com.example.zero.services.dto.product.UpdateProductServiceDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.mockk.Runs
@@ -23,7 +21,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -35,7 +32,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.test.junit5.JUnit5Asserter.assertEquals
 
 class ProductWebMockTest{
 

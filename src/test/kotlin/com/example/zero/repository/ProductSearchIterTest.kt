@@ -1,6 +1,6 @@
 package com.example.zero.repository
 
-import com.example.zero.controller.dto.request.search.SearchFilterDto
+import com.example.zero.controller.dto.product.request.search.SearchFilterDto
 import com.example.zero.enums.CategoryType
 import com.example.zero.enums.OperationType
 import com.example.zero.persistence.entity.ProductEntity
