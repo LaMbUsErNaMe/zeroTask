@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="v1.0" author="Vlad" labels="example-label" context="example-context">
+        <comment>Создание таблицы product (продукты)</comment>
+        <sqlFile encoding="utf8"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"
+                 path="create-product-table.sql"/>
+        <rollback>
+            <sqlFile encoding="utf8"
+                     relativeToChangelogFile="true"
+                     splitStatements="true"
+                     stripComments="true"
+                     path="drop-product-table.sql"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="v1.3" author="Vlad" labels="example-label" context="example-context">
+        <comment>Создание таблицы customers (покупатели)</comment>
+        <sqlFile encoding="utf8"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"
+                 path="create-customer-table.sql"/>
+        <rollback>
+            <sqlFile encoding="utf8"
+                     relativeToChangelogFile="true"
+                     splitStatements="true"
+                     stripComments="true"
+                     path="drop-customer-table.sql"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="v1.1" author="Vlad" labels="example-label" context="example-context">
+        <comment>Создание таблицы order (заказы)</comment>
+        <sqlFile encoding="utf8"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"
+                 path="create-order-table.sql"/>
+        <rollback>
+            <sqlFile encoding="utf8"
+                     relativeToChangelogFile="true"
+                     splitStatements="true"
+                     stripComments="true"
+                     path="drop-order-table.sql"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="v1.2" author="Vlad" labels="example-label" context="example-context">
+        <comment>Создание таблицы order_item (товары в заказе)</comment>
+        <sqlFile encoding="utf8"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"
+                 path="create-order-item-table.sql"/>
+        <rollback>
+            <sqlFile encoding="utf8"
+                     relativeToChangelogFile="true"
+                     splitStatements="true"
+                     stripComments="true"
+                     path="drop-order-item-table.sql"/>
+        </rollback>
+    </changeSet>
+
+
+
+</databaseChangeLog>

@@ -1,0 +1,34 @@
+app:
+  schedule:
+    enabled: true
+    optimization: true
+    period: 60000
+    priceIncreasePercentage: 1.101
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+spring:
+  thymeleaf:
+    check-template-location: false
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+  application:
+    name: zero
+  datasource:
+    url: ${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false
+        generate_statistics: true
+        jdbc:
+          time_zone: Europe/Samara
+    hibernate:
+      ddl-auto: validate
+server:
+  port: 8080
