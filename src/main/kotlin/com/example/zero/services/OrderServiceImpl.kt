@@ -1,7 +1,5 @@
 package com.example.zero.services
 
-import com.example.zero.controller.dto.order.request.patch.PatchOrderRequest
-import com.example.zero.controller.dto.order.request.patch.PatchOrderStatusRequest
 import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.enums.OrderStatusType
 import com.example.zero.exception.AccessForbidden
@@ -15,9 +13,7 @@ import com.example.zero.persistence.repository.ProductRepository
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
-import com.example.zero.services.dto.product.PatchProductServiceDto
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -46,6 +42,12 @@ class OrderServiceImpl(
         val missingProducts = productIds.filterNot { products.containsKey(it) }
         if (missingProducts.isNotEmpty()) {
             throw NotFoundException("Заказ не создан!Товары не найдены: $missingProducts")
+        }
+
+        val notAvailableProds = products.values.filterNot { !it.isAvailable}
+        if (notAvailableProds.isNotEmpty()) {
+            val notAvailableIds = notAvailableProds.map { it.id!! }
+            throw NotFoundException("Заказ не создан! Товары недоступны: $notAvailableIds")
         }
 
         val quantityNotEnoughProducts = request.products.filter { productFromDto ->
@@ -107,6 +109,12 @@ class OrderServiceImpl(
         val missingProducts = productIds.filterNot { products.containsKey(it) }
         if (missingProducts.isNotEmpty()) {
             throw NotFoundException("Заказ не обновлён!Товары не найдены: $missingProducts")
+        }
+
+        val notAvailableProds = products.values.filterNot { !it.isAvailable}
+        if (notAvailableProds.isNotEmpty()) {
+            val notAvailableIds = notAvailableProds.map { it.id!! }
+            throw NotFoundException("Заказ не создан! Товары недоступны: $notAvailableIds")
         }
 
         val quantityNotEnoughProducts = request.products.filter { productFromDto ->

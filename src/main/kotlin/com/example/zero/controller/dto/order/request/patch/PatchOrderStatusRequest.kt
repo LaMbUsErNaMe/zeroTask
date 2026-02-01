@@ -12,6 +12,4 @@ data class PatchOrderStatusRequest(
         type = ""
     )
     val status: OrderStatusType,
-
-
 )
