@@ -24,4 +24,6 @@ interface OrderItemRepository : JpaRepository<OrderItemEntity, UUID> {
         WHERE i.order.id = :orderId
     """)
     fun findOrderProductsForUpdate(@Param("orderId") orderId: UUID): List<OrderItemUpdateProjection>
+
+    fun findByOrderIdAndProductId(orderId: UUID, productId: UUID): List<OrderItemEntity>
 }

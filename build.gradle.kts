@@ -35,6 +35,8 @@ kapt {
 }
 
 dependencies {
+	implementation ("org.springframework.boot:spring-boot-starter-webflux")
+
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
 	implementation("javax.validation:validation-api:2.0.0.Final")
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")

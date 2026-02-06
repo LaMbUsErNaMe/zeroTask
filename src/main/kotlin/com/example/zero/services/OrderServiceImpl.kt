@@ -1,5 +1,7 @@
 package com.example.zero.services
 
+import com.example.zero.controller.dto.customer.response.CustomerInfo
+import com.example.zero.controller.dto.order.response.OrderInfo
 import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.enums.OrderStatusType
 import com.example.zero.exception.AccessForbidden
@@ -13,9 +15,12 @@ import com.example.zero.persistence.repository.ProductRepository
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.reactive.function.client.WebClient
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -24,7 +29,10 @@ class OrderServiceImpl(
     private val customerRepository: CustomerRepository,
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository,
-    private val orderItemRepository: OrderItemRepository
+    private val orderItemRepository: OrderItemRepository,
+
+    @Qualifier("accountNumberWebClient") private val accountNumberWebClient: WebClient,
+    @Qualifier("innWebClient") private val innWebClient: WebClient
 ) : OrderService{
 
     @Transactional
@@ -44,7 +52,7 @@ class OrderServiceImpl(
             throw NotFoundException("Заказ не создан!Товары не найдены: $missingProducts")
         }
 
-        val notAvailableProds = products.values.filterNot { !it.isAvailable}
+        val notAvailableProds = products.values.filterNot { it.isAvailable}
         if (notAvailableProds.isNotEmpty()) {
             val notAvailableIds = notAvailableProds.map { it.id!! }
             throw NotFoundException("Заказ не создан! Товары недоступны: $notAvailableIds")
@@ -207,6 +215,66 @@ class OrderServiceImpl(
 
         val updated = orderRepository.updateStatus(id, dto.status)
         if (updated == 0) throw NotFoundException("Заказ не найден!")
+    }
+
+    override fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>> {
+
+        val statuses = listOf(OrderStatusType.CONFIRMED, OrderStatusType.CREATED)
+        val ordersByProduct = orderRepository.findOrdersInfoRowsByProduct(productId, statuses)
+
+        if (ordersByProduct.isEmpty()) {
+            throw NotFoundException("Нет актуальных заказов!")
+        }
+
+        val logins = ordersByProduct.map { it.customerLogin }.distinct()
+
+        val accountNumbersMap = getAccountNumbers(logins)
+        val innsMap = getInns(logins)
+
+        val result = ordersByProduct.map { order ->
+            OrderInfo(
+                id = order.orderId,
+                customer = CustomerInfo(
+                    id = order.customerId,
+                    email = order.customerLogin,
+                    accountNumber = accountNumbersMap[order.customerLogin] ?: "ОТСУТСТВУЕТ!",
+                    inn = innsMap[order.customerLogin] ?: "ОТСУТСТВУЕТ!"
+                ),
+                status = order.status,
+                deliveryAddress = order.deliveryAddress,
+                quantity = order.quantity
+            )
+        }
+
+        return mapOf(productId to result)
+    }
+
+    private fun getAccountNumbers(logins: List<String>): Map<String, String> {
+        return try {
+            accountNumberWebClient.post()
+                .uri("/getAccountsInfo/getAccountNumbers")
+                .bodyValue(logins)
+                .retrieve()
+                .bodyToMono(object : ParameterizedTypeReference<Map<String, String>>() {})
+                .block()
+                ?: emptyMap()
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
+    private fun getInns(logins: List<String>): Map<String, String> {
+        return try {
+            innWebClient.post()
+                .uri("/getAccountsInfo/getAccountInns")
+                .bodyValue(logins)
+                .retrieve()
+                .bodyToMono(object : ParameterizedTypeReference<Map<String, String>>() {})
+                .block()
+                ?: emptyMap()
+        } catch (e: Exception) {
+            emptyMap()
+        }
     }
 
     override fun existsChekAndGetOrder(customerId: Long, id: UUID): OrderEntity {
