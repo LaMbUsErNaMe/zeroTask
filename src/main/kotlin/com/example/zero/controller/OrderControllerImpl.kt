@@ -3,6 +3,7 @@ package com.example.zero.controller
 import com.example.zero.controller.dto.order.request.CreateOrderRequest
 import com.example.zero.controller.dto.order.request.patch.PatchOrderRequest
 import com.example.zero.controller.dto.order.request.patch.PatchOrderStatusRequest
+import com.example.zero.controller.dto.order.response.OrderInfo
 import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.extension.toCreateOrderServiceDto
 import com.example.zero.extension.toPatchOrderServiceDto
@@ -71,5 +72,10 @@ class OrderControllerImpl(
         @PathVariable id: UUID,@RequestBody dto: PatchOrderStatusRequest
     ) {
         orderService.patchStatus(id, dto.toPatchOrderStatusServiceDto())
+    }
+
+    @GetMapping("/getOrdersByProduct/{productId}")
+    override fun getOrdersInfoByProduct(@PathVariable productId: UUID): Map<UUID, List<OrderInfo>> {
+        return orderService.getOrdersInfoByProduct(productId)
     }
 }
