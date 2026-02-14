@@ -16,13 +16,13 @@ class MeasureTimeAspect{
     fun measureExecTime(pjp: ProceedingJoinPoint): Any?{
         val method = pjp.signature.toShortString()
         val start = System.currentTimeMillis()
-        log.debug("Function [$method] started")
+        log.info("Function [$method] started")
 
         try {
             return pjp.proceed()
         } finally {
             val durationMs = (System.currentTimeMillis() - start)
-            log.debug("Function [$method] took $durationMs ms")
+            log.info("Function [$method] took $durationMs ms")
         }
     }
 }
