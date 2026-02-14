@@ -16,7 +16,6 @@ description = "Demo project for Spring Boot"
 
 detekt {
     buildUponDefaultConfig = true
-    //config.setFrom(files("$rootDir/detekt.yml"))
     ignoreFailures = true
 }
 
@@ -36,7 +35,7 @@ kapt {
 
 dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
-	implementation("javax.validation:validation-api:2.0.0.Final")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -55,7 +54,6 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("org.mapstruct:mapstruct:1.6.2")
 	kapt("org.mapstruct:mapstruct-processor:1.6.2")
-
 
 }
 

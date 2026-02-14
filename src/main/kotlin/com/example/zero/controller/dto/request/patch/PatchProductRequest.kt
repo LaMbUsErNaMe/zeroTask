@@ -24,7 +24,7 @@ data class PatchProductRequest(
     )
     val productNumber: Long?,
 
-    @field:Size(min = 1, message = "Описание не может быть пустым!")
+    @field:Size(min = 1)
     @field:Schema(
         description = "Описание техники",
         example = "Характеристики телефона",
@@ -40,7 +40,7 @@ data class PatchProductRequest(
     )
     val categoryType: CategoryType?,
 
-    @field:Positive(message = "Цена должна быть положительной и не равна нулю!")
+    @field:Positive
     @field:Schema(
         description = "Стоимость",
         example = "99999.99",
@@ -48,7 +48,7 @@ data class PatchProductRequest(
     )
     val price: BigDecimal?,
 
-    @field:PositiveOrZero(message = "Кол-во не может быть отрицательным!")
+    @field:PositiveOrZero
     @field:Schema(
         description = "Кол-во",
         example = "99",

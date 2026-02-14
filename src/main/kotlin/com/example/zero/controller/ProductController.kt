@@ -6,6 +6,7 @@ import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.controller.dto.request.update.UpdateProductRequest
 import com.example.zero.controller.dto.response.ResponseProduct
 import com.example.zero.services.dto.ProductDto
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.UUID
@@ -34,7 +35,7 @@ import java.util.UUID
 
 interface ProductController{
 
-    fun create(dto: CreateProductRequest): UUID
+    fun create(@Valid dto: CreateProductRequest): UUID
 
     fun getAll(pageable: Pageable): Page<ResponseProduct>
 
@@ -42,10 +43,10 @@ interface ProductController{
 
     fun delete(id: UUID)
 
-    fun update(id: UUID, dto: UpdateProductRequest)
+    fun update(id: UUID, @Valid dto: UpdateProductRequest)
 
-    fun patch(id: UUID, dto: PatchProductRequest)
+    fun patch(id: UUID, @Valid dto: PatchProductRequest)
 
-    fun search(searchRequest: List<SearchFilterDto>, pageable: Pageable): Page<ProductDto>
+    fun search(@Valid searchRequest: List<SearchFilterDto>, pageable: Pageable): Page<ProductDto>
 
 }

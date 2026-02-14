@@ -11,8 +11,7 @@ import java.math.BigDecimal
 
 @Schema(description = "DTO Для добавления товара.")
 data class CreateProductRequest(
-    @field:NotNull(message = "Имя не может быть null!")
-    @field:NotBlank(message = "Имя не может быть пустым!")
+    @field:NotBlank
     @field:Schema(
         description = "Наименование",
         example = "Samsung Galaxy Note 7",
@@ -20,7 +19,7 @@ data class CreateProductRequest(
     )
     val name: String,
 
-    @field:NotNull(message = "Артикул не может быть null!")
+    @field:NotNull
     @field:Schema(
         description = "Артикул",
         example = "238487923491234",
@@ -28,7 +27,7 @@ data class CreateProductRequest(
     )
     val productNumber: Long,
 
-    @field:Size(min = 1, message = "Описание не может быть пустым!")
+    @field:Size
     @field:Schema(
         description = "Описание техники",
         example = "Характеристики телефона",
@@ -36,7 +35,7 @@ data class CreateProductRequest(
     )
     val description: String?,
 
-    @field:NotNull(message = "категория не может быть null!")
+    @field:NotNull
     @field:Schema(
         description = "категория",
         example = "SMARTPHONES",
@@ -44,8 +43,8 @@ data class CreateProductRequest(
     )
     val categoryType: CategoryType,
 
-    @field:NotNull(message = "Стоимость не может быть null!")
-    @field:Positive(message = "Цена должна быть положительной и не равна нулю!")
+    @field:NotNull
+    @field:Positive
     @field:Schema(
         description = "Стоимость",
         example = "99999.99",
@@ -53,8 +52,8 @@ data class CreateProductRequest(
     )
     val price: BigDecimal,
 
-    @field:NotNull(message = "Кол-во не может быть null!")
-    @field:PositiveOrZero(message = "Кол-во не может быть отрицательным!")
+    @field:NotNull
+    @field:PositiveOrZero
     @field:Schema(
         description = "Кол-во",
         example = "99",

@@ -12,6 +12,7 @@ import com.example.zero.extension.toUpdateProductServiceDto
 import com.example.zero.services.ProductService
 import com.example.zero.services.dto.ProductDto
 import io.swagger.v3.oas.annotations.Operation
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
@@ -27,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
-import javax.validation.Valid
 
 /**
  * @Valid - проверяет на все ограничения указанные в Dto
@@ -104,12 +104,11 @@ class ProductControllerImpl(
     @PostMapping("/search")
     override fun search(
         @RequestBody
-        @Valid
         searchRequest: List<@Valid SearchFilterDto>,
         pageable: Pageable
         ): Page<ProductDto>
     {
-            return productService.search(searchRequest, pageable)
+        return productService.search(searchRequest, pageable)
     }
 
 }

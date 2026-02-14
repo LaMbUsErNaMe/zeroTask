@@ -3,7 +3,7 @@ app:
     enabled: true
     optimization: true
     period: 60000
-    priceIncreasePercentage: 1.101
+    priceIncreasePercentage: 10.1
 springdoc:
   swagger-ui:
     enabled: false

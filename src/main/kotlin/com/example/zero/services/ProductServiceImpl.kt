@@ -65,7 +65,7 @@ class ProductServiceImpl(
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     @field:Value($$"${app.schedule.priceIncreasePercentage}")
-    lateinit var priceIncrease: BigDecimal
+    lateinit var priceIncreasePercent: BigDecimal
 
     @Transactional
     override fun save(dto: CreateProductServiceDto): UUID {
@@ -142,7 +142,9 @@ class ProductServiceImpl(
     override fun priceUp() {
         log.info("SIMPLE SCHEDULER START")
         val products = productRepository.findAllWithLock().asSequence()
-            .onEach{ it.price = it.price.multiply(priceIncrease) }.toList()
+            .onEach{ it.price = it.price.add(
+                it.price.multiply( priceIncreasePercent.divide(BigDecimal(100)) )
+            ) }.toList()
         productRepository.saveAll(products)
         log.info("SIMPLE SCHEDULER END")
     }
@@ -153,13 +155,14 @@ class ProductServiceImpl(
         val toWrite = ArrayList<String>()
         val file = File("opt_sheluder_log.txt")
         log.info("OPT SCHEDULER START")
-        jdbcTemplate.query("""SELECT id, price FROM product_schema.products FOR UPDATE""")
+        jdbcTemplate.query("""SELECT id, price FROM products FOR UPDATE""")
         { resultSet ->
             val id: UUID = resultSet.getObject("id", UUID::class.java)
             val price = resultSet.getBigDecimal("price")
-            val newPrice = price.multiply(priceIncrease)
+            val newPrice = price.add(price.multiply(priceIncreasePercent.divide(BigDecimal(100))))
 
-            jdbcTemplate.update("UPDATE product_schema.products SET price = ? WHERE id = ?", newPrice, id)
+            jdbcTemplate.update("UPDATE products SET price = ? WHERE id = ?", newPrice, id)
+            log.info(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
             toWrite.add(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
             inc++
         }

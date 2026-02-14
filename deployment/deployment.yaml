@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zero-deployment
+  labels:
+    app: zero-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: zero-app
+  template:
+    metadata:
+      labels:
+        app: zero-app
+    spec:
+      containers:
+        - name: zero-app
+          image: silly/zerov3:latest
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: test
+
+          ports:
+            - containerPort: 8080
+              name: web
+
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health
+            failureThreshold: 3
+            periodSeconds: 10
