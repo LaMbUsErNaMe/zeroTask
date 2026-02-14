@@ -1,11 +1,11 @@
 package com.example.zero.controller
 
 import com.example.zero.controller.dto.request.CreateProductRequest
-import com.example.zero.controller.dto.request.patch.PatchProductRequest
+import com.example.zero.controller.dto.product.request.patch.PatchProductRequest
 import com.example.zero.controller.dto.request.search.SearchFilterDto
-import com.example.zero.controller.dto.request.update.UpdateProductRequest
-import com.example.zero.controller.dto.response.ResponseProduct
-import com.example.zero.services.dto.ProductDto
+import com.example.zero.controller.dto.product.request.update.UpdateProductRequest
+import com.example.zero.controller.dto.product.response.ResponseProduct
+import com.example.zero.services.dto.product.ProductDto
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
