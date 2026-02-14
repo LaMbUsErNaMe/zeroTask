@@ -3,7 +3,9 @@ package com.example.zero.controllers
 import com.example.zero.controller.ProductController
 import com.example.zero.controller.ProductControllerImpl
 import com.example.zero.controller.dto.request.CreateProductRequest
+import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.enums.CategoryType
+import com.example.zero.enums.OperationType
 import com.example.zero.exception.GlobalExceptionControllerAdvice
 import com.example.zero.services.ProductService
 import com.example.zero.services.dto.ProductDto
@@ -18,8 +20,11 @@ import io.mockk.just
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -30,9 +35,11 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.test.junit5.JUnit5Asserter.assertEquals
 
 class ProductWebMockTest{
 
+    @Autowired
     private lateinit var mockMvc: MockMvc
 
     private val productService = mockk<ProductService>()
@@ -48,6 +55,7 @@ class ProductWebMockTest{
         mockMvc = MockMvcBuilders
             .standaloneSetup(controller)
             .setControllerAdvice(GlobalExceptionControllerAdvice())
+            .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
             .build()
     }
 
@@ -131,9 +139,7 @@ class ProductWebMockTest{
         every { productService.findAll(any()) } returns page
 
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/products")
-                .param("page", "0")
-                .param("size", "10")
+            MockMvcRequestBuilders.get("/products?page=0&size=10")
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content").isArray)

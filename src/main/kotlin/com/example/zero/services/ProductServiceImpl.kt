@@ -1,16 +1,19 @@
 package com.example.zero.services
 
 import com.example.zero.annotation.MeasureExecTime
+import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductDto
 import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository
+import com.example.zero.search.ProductCriteriaPredicateBuilder
 import com.example.zero.services.dto.ProductDto
 import com.example.zero.services.dto.CreateProductServiceDto
 import com.example.zero.services.dto.PatchProductServiceDto
 import com.example.zero.services.dto.UpdateProductServiceDto
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -22,6 +25,7 @@ import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
+
 
 /**
  * Сервис - слой бизнес логики. Те же CRUD которые вызывает контроллер отсюда,
@@ -53,11 +57,15 @@ import java.util.UUID
 @Service
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
+    private val productCriteriaPredicateBuilder: ProductCriteriaPredicateBuilder,
     private val jdbcTemplate: JdbcTemplate
+
 ): ProductService {
 
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
+
     @field:Value($$"${app.schedule.priceIncreasePercentage}")
-    lateinit var priceIncrease: BigDecimal
+    lateinit var priceIncreasePercent: BigDecimal
 
     @Transactional
     override fun save(dto: CreateProductServiceDto): UUID {
@@ -132,42 +140,54 @@ class ProductServiceImpl(
 
     @Transactional
     override fun priceUp() {
-        println("SIMPLE SCHEDULER START")
+        log.info("SIMPLE SCHEDULER START")
         val products = productRepository.findAllWithLock().asSequence()
-            .onEach{ it.price = it.price.multiply(priceIncrease) }.toList()
+            .onEach{ it.price = it.price.add(
+                it.price.multiply( priceIncreasePercent.divide(BigDecimal(100)) )
+            ) }.toList()
         productRepository.saveAll(products)
-        println("SIMPLE SCHEDULER END")
+        log.info("SIMPLE SCHEDULER END")
     }
 
     @Transactional
     override fun priceUpOpt() {
         var inc = 1
-        val log = ArrayList<String>()
+        val toWrite = ArrayList<String>()
         val file = File("opt_sheluder_log.txt")
-        println("OPT SCHEDULER START")
-        jdbcTemplate.query("""SELECT id, price FROM product_schema.products FOR UPDATE""")
+        log.info("OPT SCHEDULER START")
+        jdbcTemplate.query("""SELECT id, price FROM products FOR UPDATE""")
         { resultSet ->
             val id: UUID = resultSet.getObject("id", UUID::class.java)
             val price = resultSet.getBigDecimal("price")
-            val newPrice = price.multiply(priceIncrease)
+            val newPrice = price.add(price.multiply(priceIncreasePercent.divide(BigDecimal(100))))
 
-            jdbcTemplate.update("UPDATE product_schema.products SET price = ? WHERE id = ?", newPrice, id)
-            log.add(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
+            jdbcTemplate.update("UPDATE products SET price = ? WHERE id = ?", newPrice, id)
+            log.info(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
+            toWrite.add(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
             inc++
         }
         try {
-            val fileContent = log.joinToString(separator = "\n")
+            val fileContent = toWrite.joinToString(separator = "\n")
 
             file.writeText(fileContent)
-            println("Successfully wrote log")
+            log.info("Successfully wrote log")
 
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
-        log.clear()
+        toWrite.clear()
 
-        println("OPT SCHEDULER END")
+        log.info("OPT SCHEDULER END")
+    }
+
+    override fun search(request: List<SearchFilterDto>,
+                        pageable: Pageable
+    ): Page<ProductDto> {
+        val specification = productCriteriaPredicateBuilder.build(request)
+        return productRepository
+            .findAll(specification, pageable)
+            .map { it.toProductDto() }
     }
 
     override fun existsChekAndGetProduct(id: UUID): ProductEntity {

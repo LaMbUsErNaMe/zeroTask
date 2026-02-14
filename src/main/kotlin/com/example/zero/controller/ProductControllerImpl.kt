@@ -2,6 +2,7 @@ package com.example.zero.controller
 
 import com.example.zero.controller.dto.request.CreateProductRequest
 import com.example.zero.controller.dto.request.patch.PatchProductRequest
+import com.example.zero.controller.dto.request.search.SearchFilterDto
 import com.example.zero.controller.dto.request.update.UpdateProductRequest
 import com.example.zero.controller.dto.response.ResponseProduct
 import com.example.zero.extension.toCreateProductServiceDto
@@ -9,10 +10,13 @@ import com.example.zero.extension.toPatchProductServiceDto
 import com.example.zero.extension.toProductResponseDto
 import com.example.zero.extension.toUpdateProductServiceDto
 import com.example.zero.services.ProductService
+import com.example.zero.services.dto.ProductDto
 import io.swagger.v3.oas.annotations.Operation
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -24,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
-import javax.validation.Valid
 
 /**
  * @Valid - проверяет на все ограничения указанные в Dto
@@ -49,8 +52,8 @@ import javax.validation.Valid
  */
 
 @RestController
+@Validated
 @RequestMapping("/products")
-
 class ProductControllerImpl(
     private val productService: ProductService
 ) : ProductController {
@@ -95,6 +98,17 @@ class ProductControllerImpl(
         @Valid @RequestBody dto: PatchProductRequest
     ){
         return productService.patch(id, dto.toPatchProductServiceDto())
+    }
+
+    @Operation(summary = "Поиск по критериям")
+    @PostMapping("/search")
+    override fun search(
+        @RequestBody
+        searchRequest: List<@Valid SearchFilterDto>,
+        pageable: Pageable
+        ): Page<ProductDto>
+    {
+        return productService.search(searchRequest, pageable)
     }
 
 }

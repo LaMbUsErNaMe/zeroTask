@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class TransactionalAspect{
 
-    private val log = LoggerFactory.getLogger(TransactionalAspect::class.java)
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     @Around("@annotation(org.springframework.transaction.annotation.Transactional)")
     fun measureTransactionTime(pjp: ProceedingJoinPoint): Any? {

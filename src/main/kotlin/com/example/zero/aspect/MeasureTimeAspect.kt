@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class MeasureTimeAspect{
 
-    private val log = LoggerFactory.getLogger(MeasureTimeAspect::class.java)
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     @Around("@annotation(com.example.zero.annotation.MeasureExecTime)")
     fun measureExecTime(pjp: ProceedingJoinPoint): Any?{

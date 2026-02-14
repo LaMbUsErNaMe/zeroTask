@@ -16,7 +16,6 @@ description = "Demo project for Spring Boot"
 
 detekt {
     buildUponDefaultConfig = true
-    //config.setFrom(files("$rootDir/detekt.yml"))
     ignoreFailures = true
 }
 
@@ -24,12 +23,6 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
-}
-
-openApiGenerate {
-	generatorName.set("spring")
-	inputSpec.set("$rootDir/src/main/resources/petstore.yaml")
-	outputDir.set("$buildDir/generated/")
 }
 
 repositories {
@@ -42,11 +35,11 @@ kapt {
 
 dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
-	implementation("javax.validation:validation-api:2.0.0.Final")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -57,10 +50,10 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-thymeleaf-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	implementation("com.h2database:h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("org.mapstruct:mapstruct:1.6.2")
 	kapt("org.mapstruct:mapstruct-processor:1.6.2")
-
 
 }
 
