@@ -1,6 +1,6 @@
 package com.example.zero.search
 
-import com.example.zero.controller.dto.request.search.SearchFilterDto
+import com.example.zero.controller.dto.product.request.search.SearchFilterDto
 import com.example.zero.enums.ProductFieldType
 import com.example.zero.exception.ParsingException
 import com.example.zero.persistence.entity.ProductEntity

@@ -1,16 +1,16 @@
 package com.example.zero.controller
 
 import com.example.zero.controller.dto.request.CreateProductRequest
-import com.example.zero.controller.dto.request.patch.PatchProductRequest
-import com.example.zero.controller.dto.request.search.SearchFilterDto
-import com.example.zero.controller.dto.request.update.UpdateProductRequest
-import com.example.zero.controller.dto.response.ResponseProduct
+import com.example.zero.controller.dto.product.request.patch.PatchProductRequest
+import com.example.zero.controller.dto.product.request.search.SearchFilterDto
+import com.example.zero.controller.dto.product.request.update.UpdateProductRequest
+import com.example.zero.controller.dto.product.response.ResponseProduct
 import com.example.zero.extension.toCreateProductServiceDto
 import com.example.zero.extension.toPatchProductServiceDto
 import com.example.zero.extension.toProductResponseDto
 import com.example.zero.extension.toUpdateProductServiceDto
 import com.example.zero.services.ProductService
-import com.example.zero.services.dto.ProductDto
+import com.example.zero.services.dto.product.ProductDto
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page

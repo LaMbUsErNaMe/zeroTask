@@ -39,6 +39,14 @@ class GlobalExceptionControllerAdvice {
         return ResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
+    @ExceptionHandler(AccessForbidden::class)
+    fun handleAccessForbidden(ex: AccessForbidden): ResponseEntity<ExceptionMessageModel> {
+        val error = ExceptionMessageModel(
+            HttpStatus.FORBIDDEN.value(), ex.message
+        )
+        return ResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
     @ExceptionHandler(ParsingException::class)
     fun handleParsingException(ex: ParsingException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(

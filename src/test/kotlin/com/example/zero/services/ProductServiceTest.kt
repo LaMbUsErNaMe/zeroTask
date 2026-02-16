@@ -7,9 +7,9 @@ import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository
 import com.example.zero.search.ProductCriteriaPredicateBuilder
-import com.example.zero.services.dto.CreateProductServiceDto
-import com.example.zero.services.dto.PatchProductServiceDto
-import com.example.zero.services.dto.UpdateProductServiceDto
+import com.example.zero.services.dto.product.CreateProductServiceDto
+import com.example.zero.services.dto.product.PatchProductServiceDto
+import com.example.zero.services.dto.product.UpdateProductServiceDto
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
