@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull
 data class SearchFilterDto(
     @field:NotBlank
     val field: String,
-    @field:NotNull
+
     val operation: OperationType,
     @field:NotBlank
     val value: String

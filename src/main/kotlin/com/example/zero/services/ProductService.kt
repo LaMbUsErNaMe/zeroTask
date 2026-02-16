@@ -1,6 +1,5 @@
 package com.example.zero.services
 
-import com.example.zero.controller.dto.product.request.search.SearchDto
 import com.example.zero.controller.dto.product.request.search.SearchFilterDto
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.services.dto.product.ProductDto
@@ -31,6 +30,6 @@ interface ProductService {
 
     fun priceUpOpt()
 
-    fun search(request: SearchDto, pageable: Pageable): Page<ProductDto>
+    fun search(request: List<SearchFilterDto>, pageable: Pageable): Page<ProductDto>
 
 }

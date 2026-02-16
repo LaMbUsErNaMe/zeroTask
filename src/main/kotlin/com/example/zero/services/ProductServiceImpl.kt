@@ -1,7 +1,7 @@
 package com.example.zero.services
 
 import com.example.zero.annotation.MeasureExecTime
-import com.example.zero.controller.dto.request.search.SearchFilterDto
+import com.example.zero.controller.dto.product.request.search.SearchFilterDto
 import com.example.zero.exception.DuplicateException
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toProductDto
@@ -9,10 +9,10 @@ import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository
 import com.example.zero.search.ProductCriteriaPredicateBuilder
-import com.example.zero.services.dto.ProductDto
-import com.example.zero.services.dto.CreateProductServiceDto
-import com.example.zero.services.dto.PatchProductServiceDto
-import com.example.zero.services.dto.UpdateProductServiceDto
+import com.example.zero.services.dto.product.ProductDto
+import com.example.zero.services.dto.product.CreateProductServiceDto
+import com.example.zero.services.dto.product.PatchProductServiceDto
+import com.example.zero.services.dto.product.UpdateProductServiceDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
@@ -181,8 +181,10 @@ class ProductServiceImpl(
         log.info("OPT SCHEDULER END")
     }
 
-    override fun search(request: List<SearchFilterDto>,
-                        pageable: Pageable
+
+    override fun search(
+        request: List<SearchFilterDto>,
+        pageable: Pageable
     ): Page<ProductDto> {
         val specification = productCriteriaPredicateBuilder.build(request)
         return productRepository

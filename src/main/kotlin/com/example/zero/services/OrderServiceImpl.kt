@@ -4,6 +4,7 @@ import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.enums.OrderStatusType
 import com.example.zero.exception.AccessForbidden
 import com.example.zero.exception.NotFoundException
+import com.example.zero.extension.toResponseOrderItem
 import com.example.zero.persistence.entity.OrderEntity
 import com.example.zero.persistence.entity.OrderItemEntity
 import com.example.zero.persistence.repository.CustomerRepository
@@ -44,7 +45,7 @@ class OrderServiceImpl(
             throw NotFoundException("Заказ не создан!Товары не найдены: $missingProducts")
         }
 
-        val notAvailableProds = products.values.filterNot { !it.isAvailable}
+        val notAvailableProds = products.values.filterNot { it.isAvailable}
         if (notAvailableProds.isNotEmpty()) {
             val notAvailableIds = notAvailableProds.map { it.id!! }
             throw NotFoundException("Заказ не создан! Товары недоступны: $notAvailableIds")
@@ -54,7 +55,7 @@ class OrderServiceImpl(
             products[productFromDto.productId]!!.quantity < productFromDto.quantity
         }
         if (!quantityNotEnoughProducts.isEmpty())
-            throw NotFoundException("Не все товары в достаточном кол-ве!")
+            throw NotFoundException("Не все товары в достаточном кол-ве! Товаров не хватает: $quantityNotEnoughProducts")
 
         val order = OrderEntity(
             customer = customerRepository.getReferenceById(customerId),
@@ -75,7 +76,7 @@ class OrderServiceImpl(
 
             OrderItemEntity(
                 order = savedOrder,
-                product = productRepository.getReferenceById(productFromDto.productId),
+                product = product,
                 productPrice = product.price,
                 quantity = productFromDto.quantity
             )
@@ -167,13 +168,16 @@ class OrderServiceImpl(
     override fun findById(customerId: Long, id: UUID): ResponseOrder {
         existsChekAndGetOrder(customerId, id)
 
-        val items = orderItemRepository.findOrderProducts(id)
+        val itemsFromProj = orderItemRepository.findOrderProducts(id)
 
-        val totalPrice = items.sumOf { it.productPrice.multiply(it.quantity) }
+        val converted = itemsFromProj.map { it.toResponseOrderItem() }
+
+
+        val totalPrice = converted.sumOf { it.productPrice.multiply(it.quantity) }
 
         val response = ResponseOrder(
             orderId = id,
-            products = items,
+            products = converted,
             totalPrice = totalPrice
         )
         return response
