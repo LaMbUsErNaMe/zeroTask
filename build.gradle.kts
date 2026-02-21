@@ -45,6 +45,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
+
+
 	runtimeOnly("org.postgresql:postgresql")
     testImplementation("com.ninja-squad:springmockk:5.0.1")
 	testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")

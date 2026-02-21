@@ -6,7 +6,6 @@ import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.enums.OrderStatusType
 import com.example.zero.exception.AccessForbidden
 import com.example.zero.exception.NotFoundException
-import com.example.zero.extension.toResponseOrderItem
 import com.example.zero.persistence.entity.OrderEntity
 import com.example.zero.persistence.entity.OrderItemEntity
 import com.example.zero.persistence.repository.CustomerRepository
@@ -16,12 +15,12 @@ import com.example.zero.persistence.repository.ProductRepository
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.ParameterizedTypeReference
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.await
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.reactive.function.client.WebClient
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -31,9 +30,8 @@ class OrderServiceImpl(
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository,
     private val orderItemRepository: OrderItemRepository,
-
-    @Qualifier("accountNumberWebClient") private val accountNumberWebClient: WebClient,
-    @Qualifier("innWebClient") private val innWebClient: WebClient
+    private val accountNumberClient: AccountNumberClient,
+    private val innClient: InnClient
 ) : OrderService{
 
     @Transactional
@@ -63,7 +61,8 @@ class OrderServiceImpl(
             products[productFromDto.productId]!!.quantity < productFromDto.quantity
         }
         if (!quantityNotEnoughProducts.isEmpty())
-            throw NotFoundException("Не все товары в достаточном кол-ве! Товаров не хватает: $quantityNotEnoughProducts")
+            throw NotFoundException("Не все товары в достаточном кол-ве! " +
+                    "Товаров не хватает: $quantityNotEnoughProducts")
 
         val order = OrderEntity(
             customer = customerRepository.getReferenceById(customerId),
@@ -221,7 +220,7 @@ class OrderServiceImpl(
         if (updated == 0) throw NotFoundException("Заказ не найден!")
     }
 
-    override fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>> {
+    override suspend fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>> {
 
         val statuses = listOf(OrderStatusType.CONFIRMED, OrderStatusType.CREATED)
         val ordersByProduct = orderRepository.findOrdersInfoRowsByProduct(productId, statuses)
@@ -232,52 +231,33 @@ class OrderServiceImpl(
 
         val logins = ordersByProduct.map { it.customerLogin }.distinct()
 
-        val accountNumbersMap = getAccountNumbers(logins)
-        val innsMap = getInns(logins)
+        return coroutineScope {
 
-        val result = ordersByProduct.map { order ->
-            OrderInfo(
-                id = order.orderId,
-                customer = CustomerInfo(
-                    id = order.customerId,
-                    email = order.customerLogin,
-                    accountNumber = accountNumbersMap[order.customerLogin] ?: "ОТСУТСТВУЕТ!",
-                    inn = innsMap[order.customerLogin] ?: "ОТСУТСТВУЕТ!"
-                ),
-                status = order.status,
-                deliveryAddress = order.deliveryAddress,
-                quantity = order.quantity
-            )
-        }
+            val accountNumbersDeferred = async {
+                accountNumberClient.getAccountNumbers(logins)
+            }
 
-        return mapOf(productId to result)
-    }
+            val innsFuture = innClient.getInnsAsync(logins)
 
-    private fun getAccountNumbers(logins: List<String>): Map<String, String> {
-        return try {
-            accountNumberWebClient.post()
-                .uri("/getAccountsInfo/getAccountNumbers")
-                .bodyValue(logins)
-                .retrieve()
-                .bodyToMono(object : ParameterizedTypeReference<Map<String, String>>() {})
-                .block()
-                ?: emptyMap()
-        } catch (e: Exception) {
-            emptyMap()
-        }
-    }
+            val accountNumbers = accountNumbersDeferred.await()
+            val inns = innsFuture.await()
 
-    private fun getInns(logins: List<String>): Map<String, String> {
-        return try {
-            innWebClient.post()
-                .uri("/getAccountsInfo/getAccountInns")
-                .bodyValue(logins)
-                .retrieve()
-                .bodyToMono(object : ParameterizedTypeReference<Map<String, String>>() {})
-                .block()
-                ?: emptyMap()
-        } catch (e: Exception) {
-            emptyMap()
+            val result = ordersByProduct.map { order ->
+                OrderInfo(
+                    id = order.orderId,
+                    customer = CustomerInfo(
+                        id = order.customerId,
+                        email = order.customerLogin,
+                        accountNumber = accountNumbers[order.customerLogin] ?: "ОТСУТСТВУЕТ!",
+                        inn = inns[order.customerLogin] ?: "ОТСУТСТВУЕТ!"
+                    ),
+                    status = order.status,
+                    deliveryAddress = order.deliveryAddress,
+                    quantity = order.quantity
+                )
+            }
+
+            mapOf(productId to result)
         }
     }
 

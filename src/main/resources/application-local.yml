@@ -23,5 +23,13 @@ spring:
     hibernate:
       show_sql: true
       ddl-auto: validate
+rest:
+  account-number:
+    base-url: http://localhost:8081
+    get-account-numbers-path: /getAccountsInfo/getAccountNumbers
+  inn:
+    base-url: http://localhost:8082
+    get-account-inns-path: /getAccountsInfo/getAccountInns
+
 server:
   port: 8080

@@ -75,7 +75,7 @@ class OrderControllerImpl(
     }
 
     @GetMapping("/getOrdersByProduct/{productId}")
-    override fun getOrdersInfoByProduct(@PathVariable productId: UUID): Map<UUID, List<OrderInfo>> {
+    override suspend fun getOrdersInfoByProduct(@PathVariable productId: UUID): Map<UUID, List<OrderInfo>> {
         return orderService.getOrdersInfoByProduct(productId)
     }
 }

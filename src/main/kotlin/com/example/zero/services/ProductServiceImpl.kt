@@ -162,7 +162,6 @@ class ProductServiceImpl(
             val newPrice = price.add(price.multiply(priceIncreasePercent.divide(BigDecimal(100))))
 
             jdbcTemplate.update("UPDATE products SET price = ? WHERE id = ?", newPrice, id)
-            log.info(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
             toWrite.add(String.format("%07d", inc) + " : ID : $id OLD : $price NEW : $newPrice")
             inc++
         }
