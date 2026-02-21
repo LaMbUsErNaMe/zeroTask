@@ -46,6 +46,11 @@ class AccountNumberClient(
                 .switchIfEmpty(
                     Mono
                         .error(IntegrationException("Empty response from AccountNumber service")))
+                .map { map ->
+                    if (map.values.any { it.isBlank() })
+                        throw IntegrationException("AccountNumber service returned blank values")
+                    map
+                }
                 .retryWhen(
                     Retry.backoff(2, Duration.ofSeconds(1))
                         .maxBackoff(Duration.ofSeconds(5))
@@ -57,7 +62,8 @@ class AccountNumberClient(
                 .awaitSingle()
         }.onFailure {
             log.error("AccountNumber service dont respond", it)
-        }.getOrElse {
-            throw IntegrationException("AccountNumber service unavailable")
+        }.getOrElse { ex ->
+            if (ex is IntegrationException) throw ex
+            throw IntegrationException("AccountNumber service unavailable $ex")
         }
 }

@@ -191,7 +191,7 @@ class ProductServiceImpl(
             .map { it.toProductDto() }
     }
 
-    override fun existsChekAndGetProduct(id: UUID): ProductEntity {
+    private fun existsChekAndGetProduct(id: UUID): ProductEntity {
         return productRepository.findByIdOrNull(id) ?: throw NotFoundException("Товар [$id] не найден!")
     }
 }

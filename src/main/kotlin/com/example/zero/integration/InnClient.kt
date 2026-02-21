@@ -44,7 +44,13 @@ class InnClient(
                     }
             }
             .bodyToMono<Map<String, String>>()
-            .switchIfEmpty(Mono.error(IntegrationException("Empty response from INN service")))
+            .switchIfEmpty(Mono
+                .error(IntegrationException("Empty response from INN service")))
+            .map { map ->
+                if (map.values.any { it.isBlank() })
+                    throw IntegrationException("INN service returned blank values")
+                map
+            }
             .retryWhen(
                 Retry.backoff(2, Duration.ofSeconds(1))
                     .maxBackoff(Duration.ofSeconds(5))

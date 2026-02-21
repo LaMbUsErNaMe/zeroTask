@@ -6,12 +6,16 @@ import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.enums.OrderStatusType
 import com.example.zero.exception.AccessForbidden
 import com.example.zero.exception.NotFoundException
+import com.example.zero.extension.toResponseOrderItem
+import com.example.zero.integration.AccountNumberClient
+import com.example.zero.integration.InnClient
 import com.example.zero.persistence.entity.OrderEntity
 import com.example.zero.persistence.entity.OrderItemEntity
 import com.example.zero.persistence.repository.CustomerRepository
 import com.example.zero.persistence.repository.OrderItemRepository
 import com.example.zero.persistence.repository.OrderRepository
 import com.example.zero.persistence.repository.ProductRepository
+import com.example.zero.projections.OrderInfoProjection
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
@@ -33,6 +37,8 @@ class OrderServiceImpl(
     private val accountNumberClient: AccountNumberClient,
     private val innClient: InnClient
 ) : OrderService{
+
+    val statuses = listOf(OrderStatusType.CONFIRMED, OrderStatusType.CREATED)
 
     @Transactional
     override fun save(customerId: Long, request: CreateOrderServiceDto) : UUID{
@@ -60,6 +66,7 @@ class OrderServiceImpl(
         val quantityNotEnoughProducts = request.products.filter { productFromDto ->
             products[productFromDto.productId]!!.quantity < productFromDto.quantity
         }
+
         if (!quantityNotEnoughProducts.isEmpty())
             throw NotFoundException("Не все товары в достаточном кол-ве! " +
                     "Товаров не хватает: $quantityNotEnoughProducts")
@@ -100,7 +107,6 @@ class OrderServiceImpl(
         id: UUID,
         request: PatchOrderServiceDto
     ) {
-
         val order = existsChekAndGetOrder(customerId, id)
 
         if (order.status != OrderStatusType.CREATED){
@@ -130,7 +136,6 @@ class OrderServiceImpl(
         }
         if (!quantityNotEnoughProducts.isEmpty())
             throw NotFoundException("Заказ не обновлён! Не все товары в достаточном кол-ве!")
-
 
         request.products.forEach { productFromDto ->
             val product = products[productFromDto.productId]!!
@@ -179,7 +184,6 @@ class OrderServiceImpl(
 
         val converted = itemsFromProj.map { it.toResponseOrderItem() }
 
-
         val totalPrice = converted.sumOf { it.productPrice.multiply(it.quantity) }
 
         val response = ResponseOrder(
@@ -222,12 +226,7 @@ class OrderServiceImpl(
 
     override suspend fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>> {
 
-        val statuses = listOf(OrderStatusType.CONFIRMED, OrderStatusType.CREATED)
-        val ordersByProduct = orderRepository.findOrdersInfoRowsByProduct(productId, statuses)
-
-        if (ordersByProduct.isEmpty()) {
-            throw NotFoundException("Нет актуальных заказов!")
-        }
+        val ordersByProduct = existsChekAndGetOrdersByProduct(productId)
 
         val logins = ordersByProduct.map { it.customerLogin }.distinct()
 
@@ -261,7 +260,12 @@ class OrderServiceImpl(
         }
     }
 
-    override fun existsChekAndGetOrder(customerId: Long, id: UUID): OrderEntity {
+    override fun confirm(customerId: Long, id: UUID) {
+        existsChekAndGetOrder(customerId, id)
+        patchStatus(id,PatchOrderStatusServiceDto(OrderStatusType.CONFIRMED))
+    }
+
+    private fun existsChekAndGetOrder(customerId: Long, id: UUID): OrderEntity {
         val order = orderRepository.findByIdOrNull(id)
             ?: throw NotFoundException("Заказ [$id] не найден!")
         if(order.customer.id != customerId){
@@ -270,8 +274,11 @@ class OrderServiceImpl(
         return order
     }
 
-    override fun confirm(customerId: Long, id: UUID) {
-        existsChekAndGetOrder(customerId, id)
-        patchStatus(id,PatchOrderStatusServiceDto(OrderStatusType.CONFIRMED))
+    private fun existsChekAndGetOrdersByProduct(id: UUID): List<OrderInfoProjection> {
+        val ordersByProduct = orderRepository.findOrdersInfoRowsByProduct(id, statuses)
+        if (ordersByProduct.isEmpty()) {
+            throw NotFoundException("Нет актуальных заказов!")
+        }
+        return ordersByProduct
     }
 }

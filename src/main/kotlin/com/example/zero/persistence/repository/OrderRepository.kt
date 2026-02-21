@@ -15,8 +15,6 @@ interface OrderRepository : JpaRepository<OrderEntity, UUID>, JpaSpecificationEx
     @Query("UPDATE OrderEntity o SET o.status = :status WHERE o.id = :id")
     fun updateStatus(@Param("id") id: UUID, @Param("status") status: OrderStatusType): Int
 
-    //fun findByStatusIn(statuses: List<OrderStatusType>): List<OrderEntity>
-
     @Query("""
     select new com.example.zero.projections.OrderInfoProjection(
         o.id,

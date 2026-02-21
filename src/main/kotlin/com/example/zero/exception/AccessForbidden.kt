@@ -1,4 +1,3 @@
 package com.example.zero.exception
 
-class AccessForbidden(message: String) : RuntimeException(message){
-}
+class AccessForbidden(message: String) : RuntimeException(message)
