@@ -15,10 +15,47 @@ import org.springframework.web.server.ResponseStatusException
 @ControllerAdvice
 class GlobalExceptionControllerAdvice {
 
+    @ExceptionHandler(RemoteServiceException::class)
+    fun handleRemoteService(ex: RemoteServiceException): ResponseEntity<ExceptionMessageModel> {
+        val response = ExceptionMessageModel(
+            status = HttpStatus.BAD_GATEWAY.value(),
+            message = "External service error: ${ex.message}"
+        )
+        return ResponseEntity(response, HttpStatus.BAD_GATEWAY)
+    }
+
+    @ExceptionHandler(EmptyResponseException::class)
+    fun handleEmptyResponse(ex: EmptyResponseException): ResponseEntity<ExceptionMessageModel> {
+        val response = ExceptionMessageModel(
+            status = HttpStatus.BAD_GATEWAY.value(),
+            message = "External service returned empty response: ${ex.message}"
+        )
+        return ResponseEntity(response, HttpStatus.BAD_GATEWAY)
+    }
+
+    @ExceptionHandler(InvalidResponseException::class)
+    fun handleInvalidResponse(ex: InvalidResponseException): ResponseEntity<ExceptionMessageModel> {
+        val response = ExceptionMessageModel(
+            status = HttpStatus.BAD_GATEWAY.value(),
+            message = "External service returned invalid data: ${ex.message}"
+        )
+        return ResponseEntity(response, HttpStatus.BAD_GATEWAY)
+    }
+
+    @ExceptionHandler(IntegrationException::class)
+    fun handleIntegration(ex: IntegrationException): ResponseEntity<ExceptionMessageModel> {
+        val response = ExceptionMessageModel(
+            status = HttpStatus.BAD_GATEWAY.value(),
+            message = "Integration error"
+        )
+        return ResponseEntity(response, HttpStatus.BAD_GATEWAY)
+    }
+
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(ex: IllegalStateException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
-            HttpStatus.BAD_REQUEST.value(),ex.message
+            status = HttpStatus.BAD_REQUEST.value(),
+            message = ex.message
         )
         return ResponseEntity(error, HttpStatus.BAD_REQUEST)
     }
@@ -26,7 +63,8 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(NotFoundException::class)
     fun handleNotFound(ex: NotFoundException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
-            HttpStatus.NOT_FOUND.value(), ex.message
+            status = HttpStatus.NOT_FOUND.value(),
+            message = ex.message
         )
         return ResponseEntity(error, HttpStatus.NOT_FOUND)
     }
@@ -34,7 +72,8 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(RuntimeException::class)
     fun handleRuntimeException(ex: RuntimeException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.message
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            message = ex.message
         )
         return ResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -42,7 +81,8 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(AccessForbidden::class)
     fun handleAccessForbidden(ex: AccessForbidden): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
-            HttpStatus.FORBIDDEN.value(), ex.message
+            status = HttpStatus.FORBIDDEN.value(),
+            message = ex.message
         )
         return ResponseEntity(error, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -50,7 +90,8 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(ParsingException::class)
     fun handleParsingException(ex: ParsingException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
-            HttpStatus.BAD_REQUEST.value(), ex.message
+            status = HttpStatus.BAD_REQUEST.value(),
+            message = ex.message
         )
         return ResponseEntity(error, HttpStatus.BAD_REQUEST)
     }
@@ -60,7 +101,8 @@ class GlobalExceptionControllerAdvice {
         val content = ex.bindingResult.fieldErrors
             .map { ValExceptionOutput(it.field, "[${it.defaultMessage}]", it.rejectedValue)}
         val error = ExceptionMessageModel(
-            HttpStatus.BAD_REQUEST.value(), content
+            status = HttpStatus.BAD_REQUEST.value(),
+            message = content
         )
         return ResponseEntity(error, HttpStatus.BAD_REQUEST)
     }
@@ -68,7 +110,8 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(DuplicateException::class)
     fun handleWrongEnum(ex: DuplicateException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
-            HttpStatus.BAD_REQUEST.value(), ex.message
+            status = HttpStatus.BAD_REQUEST.value(),
+            message = ex.message
         )
         return ResponseEntity(error, HttpStatus.NOT_FOUND)
     }
@@ -76,7 +119,8 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatus(ex: ResponseStatusException): ResponseEntity<ExceptionMessageModel> {
         val error = ExceptionMessageModel(
-            ex.statusCode.value(), ex.reason
+            status = ex.statusCode.value(),
+            message = ex.reason
         )
         return ResponseEntity(error, ex.statusCode)
     }

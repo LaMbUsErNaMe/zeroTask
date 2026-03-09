@@ -1,4 +1,4 @@
-package com.example.zero.controller.dto.request
+package com.example.zero.controller.dto.product.request
 
 import com.example.zero.enums.CategoryType
 import io.swagger.v3.oas.annotations.media.Schema

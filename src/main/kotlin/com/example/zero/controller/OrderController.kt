@@ -21,5 +21,5 @@ interface OrderController {
 
     fun patchStatus(id: UUID, dto: PatchOrderStatusRequest)
 
-    suspend fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>>
+    fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>>
 }

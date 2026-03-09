@@ -24,12 +24,23 @@ spring:
       show_sql: true
       ddl-auto: validate
 rest:
-  account-number:
-    base-url: http://localhost:8081
-    get-account-numbers-path: /getAccountsInfo/getAccountNumbers
-  inn:
-    base-url: http://localhost:8082
-    get-account-inns-path: /getAccountsInfo/getAccountInns
-
+  web-clients:
+    chunk-size: 1
+    account-number:
+      base-url: http://localhost:8081
+      get-account-numbers-path: /getAccountsInfo/getAccountNumbers
+      retry-attempts: 2
+      min-backoff: 1
+      max-backoff: 5
+    inn:
+      base-url: http://localhost:8082
+      get-account-inns-path: /getAccountsInfo/getAccountInns
+      retry-attempts: 2
+      min-backoff: 1
+      max-backoff: 5
+  integration-executor:
+    core-pool-size: 10
+    max-pool-size: 10
+    queue-capacity: 100
 server:
   port: 8080

@@ -1,5 +1,6 @@
 package com.example.zero.services
 
+import com.example.zero.configuration.RestProperties
 import com.example.zero.controller.dto.customer.response.CustomerInfo
 import com.example.zero.controller.dto.order.response.OrderInfo
 import com.example.zero.controller.dto.order.response.ResponseOrder
@@ -19,9 +20,12 @@ import com.example.zero.projections.OrderInfoProjection
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,8 +39,13 @@ class OrderServiceImpl(
     private val productRepository: ProductRepository,
     private val orderItemRepository: OrderItemRepository,
     private val accountNumberClient: AccountNumberClient,
-    private val innClient: InnClient
+    private val innClient: InnClient,
+    private val integrationDispatcher: CoroutineDispatcher,
+    private val restProperties: RestProperties
 ) : OrderService{
+
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
+
 
     val statuses = listOf(OrderStatusType.CONFIRMED, OrderStatusType.CREATED)
 
@@ -219,45 +228,61 @@ class OrderServiceImpl(
     }
 
     override fun patchStatus(id: UUID, dto: PatchOrderStatusServiceDto) {
-
         val updated = orderRepository.updateStatus(id, dto.status)
         if (updated == 0) throw NotFoundException("Заказ не найден!")
     }
 
-    override suspend fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>> {
+    override fun getOrdersInfoByProduct(productId: UUID): Map<UUID, List<OrderInfo>> = runBlocking {
 
         val ordersByProduct = existsChekAndGetOrdersByProduct(productId)
 
         val logins = ordersByProduct.map { it.customerLogin }.distinct()
 
-        return coroutineScope {
+        val chunks = logins.chunked(restProperties.webClients.chunkSize)
 
-            val accountNumbersDeferred = async {
-                accountNumberClient.getAccountNumbers(logins)
-            }
-
-            val innsFuture = innClient.getInnsAsync(logins)
-
-            val accountNumbers = accountNumbersDeferred.await()
-            val inns = innsFuture.await()
-
-            val result = ordersByProduct.map { order ->
-                OrderInfo(
-                    id = order.orderId,
-                    customer = CustomerInfo(
-                        id = order.customerId,
-                        email = order.customerLogin,
-                        accountNumber = accountNumbers[order.customerLogin] ?: "ОТСУТСТВУЕТ!",
-                        inn = inns[order.customerLogin] ?: "ОТСУТСТВУЕТ!"
-                    ),
-                    status = order.status,
-                    deliveryAddress = order.deliveryAddress,
-                    quantity = order.quantity
-                )
-            }
-
-            mapOf(productId to result)
+        val accountNumbersDeferred  = async {
+            chunks.map { chunk ->
+                    async(integrationDispatcher) {
+                        log.info("Thread: ${Thread.currentThread().name} getAccountNumbersSuspended")
+                        accountNumberClient.getAccountNumbersSuspended(chunk)
+                    }
+                }
+                .awaitAll()
+                .flatMap { it.entries }
+                .associate { it.toPair() }
         }
+
+        val innsDeferred  = async {
+            chunks.map { chunk ->
+                    async(integrationDispatcher) {
+                        log.info("Thread: ${Thread.currentThread().name} getInnsFuture")
+                        innClient.getInnsFuture(chunk).await()
+                    }
+                }
+                .awaitAll()
+                .flatMap { it.entries }
+                .associate { it.toPair() }
+        }
+
+        val accountNumbers = accountNumbersDeferred.await()
+        val inns = innsDeferred.await()
+
+        val result = ordersByProduct.map { order ->
+            OrderInfo(
+                id = order.orderId,
+                customer = CustomerInfo(
+                    id = order.customerId,
+                    email = order.customerLogin,
+                    accountNumber = accountNumbers[order.customerLogin] ?: "ОТСУТСТВУЕТ!",
+                    inn = inns[order.customerLogin] ?: "ОТСУТСТВУЕТ!"
+                ),
+                status = order.status,
+                deliveryAddress = order.deliveryAddress,
+                quantity = order.quantity
+            )
+        }
+
+        mapOf(productId to result)
     }
 
     override fun confirm(customerId: Long, id: UUID) {

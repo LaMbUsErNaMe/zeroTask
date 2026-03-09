@@ -1,3 +1,6 @@
 package com.example.zero.exception
 
-class IntegrationException(message: String) : RuntimeException(message)
+open class IntegrationException(
+    message: String,
+    cause: Throwable? = null)
+    : RuntimeException(message, cause)
