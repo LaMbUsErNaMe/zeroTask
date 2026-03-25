@@ -13,7 +13,7 @@ import com.example.zero.services.dto.product.ProductDto
 import com.example.zero.services.dto.product.CreateProductServiceDto
 import com.example.zero.services.dto.product.PatchProductServiceDto
 import com.example.zero.services.dto.product.UpdateProductServiceDto
-import org.slf4j.LoggerFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -61,8 +61,6 @@ class ProductServiceImpl(
     private val jdbcTemplate: JdbcTemplate
 
 ): ProductService {
-
-    private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     @field:Value($$"${app.schedule.priceIncreasePercentage}")
     lateinit var priceIncreasePercent: BigDecimal
@@ -140,13 +138,13 @@ class ProductServiceImpl(
 
     @Transactional
     override fun priceUp() {
-        log.info("SIMPLE SCHEDULER START")
+        logger.info{"SIMPLE SCHEDULER START"}
         val products = productRepository.findAllWithLock().asSequence()
             .onEach{ it.price = it.price.add(
                 it.price.multiply( priceIncreasePercent.divide(BigDecimal(100)) )
             ) }.toList()
         productRepository.saveAll(products)
-        log.info("SIMPLE SCHEDULER END")
+        logger.info{"SIMPLE SCHEDULER END"}
     }
 
     @Transactional
@@ -154,7 +152,7 @@ class ProductServiceImpl(
         var inc = 1
         val toWrite = ArrayList<String>()
         val file = File("opt_sheluder_log.txt")
-        log.info("OPT SCHEDULER START")
+        logger.info { "OPT SCHEDULER START" }
         jdbcTemplate.query("""SELECT id, price FROM products FOR UPDATE""")
         { resultSet ->
             val id: UUID = resultSet.getObject("id", UUID::class.java)
@@ -169,7 +167,7 @@ class ProductServiceImpl(
             val fileContent = toWrite.joinToString(separator = "\n")
 
             file.writeText(fileContent)
-            log.info("Successfully wrote log")
+            logger.info { "Successfully wrote log" }
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -177,9 +175,8 @@ class ProductServiceImpl(
 
         toWrite.clear()
 
-        log.info("OPT SCHEDULER END")
+        logger.info { "OPT SCHEDULER END" }
     }
-
 
     override fun search(
         request: List<SearchFilterDto>,
@@ -193,5 +190,9 @@ class ProductServiceImpl(
 
     private fun existsChekAndGetProduct(id: UUID): ProductEntity {
         return productRepository.findByIdOrNull(id) ?: throw NotFoundException("Товар [$id] не найден!")
+    }
+
+    private companion object {
+        val logger = KotlinLogging.logger {}
     }
 }

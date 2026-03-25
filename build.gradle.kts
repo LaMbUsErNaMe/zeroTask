@@ -35,6 +35,7 @@ kapt {
 
 dependencies {
 	implementation ("org.springframework.boot:spring-boot-starter-webflux")
+	implementation("io.github.oshai:kotlin-logging-jvm:8.0.01")
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
 	implementation("org.springframework.boot:spring-boot-starter-validation")

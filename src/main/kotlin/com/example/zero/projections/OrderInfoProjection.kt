@@ -5,6 +5,7 @@ import java.math.BigDecimal
 import java.util.UUID
 
 data class OrderInfoProjection(
+    val productId: UUID,
     val orderId: UUID,
     val customerId: Long,
     val customerLogin: String,

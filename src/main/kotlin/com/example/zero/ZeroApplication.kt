@@ -1,8 +1,7 @@
 package com.example.zero
 
-import com.example.zero.configuration.RestProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 
@@ -22,7 +21,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing
  */
 @EnableJpaAuditing
 @SpringBootApplication
-@EnableConfigurationProperties(RestProperties::class)
+@ConfigurationPropertiesScan
 class ZeroApplication
 
 fun main(args: Array<String>) {

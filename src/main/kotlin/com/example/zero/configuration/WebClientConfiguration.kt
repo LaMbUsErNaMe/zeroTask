@@ -1,6 +1,6 @@
 package com.example.zero.configuration
 
-import io.netty.channel.ChannelOption
+import com.example.zero.properties.RestProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient

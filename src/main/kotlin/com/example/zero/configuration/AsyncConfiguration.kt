@@ -1,5 +1,6 @@
 package com.example.zero.configuration
 
+import com.example.zero.properties.RestProperties
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.springframework.context.annotation.Bean

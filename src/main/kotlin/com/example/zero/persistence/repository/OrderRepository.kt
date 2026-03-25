@@ -17,6 +17,7 @@ interface OrderRepository : JpaRepository<OrderEntity, UUID>, JpaSpecificationEx
 
     @Query("""
     select new com.example.zero.projections.OrderInfoProjection(
+        oi.product.id,
         o.id,
         c.id,
         c.login,
@@ -28,11 +29,8 @@ interface OrderRepository : JpaRepository<OrderEntity, UUID>, JpaSpecificationEx
     join o.customer c
     join OrderItemEntity oi on oi.order = o
     where o.status in :statuses
-      and oi.product.id = :productId
 """)
-    fun findOrdersInfoRowsByProduct(
-        @Param("productId") productId: UUID,
+    fun getOrderInfoProjectionsByStatusIn(
         @Param("statuses") statuses: List<OrderStatusType>
     ): List<OrderInfoProjection>
-
 }

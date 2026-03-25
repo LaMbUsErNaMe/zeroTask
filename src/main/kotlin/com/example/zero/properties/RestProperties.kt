@@ -1,4 +1,4 @@
-package com.example.zero.configuration
+package com.example.zero.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
@@ -8,8 +8,7 @@ class RestProperties(
     val integrationExecutor: IntegrationExecutor
 ) {
     class WebClients(val accountNumber: AccountNumber,
-                     val inn: Inn,
-                     val chunkSize: Int = 1){
+                     val inn: Inn){
         class AccountNumber(
             val baseUrl: String,
             val getAccountNumbersPath: String,

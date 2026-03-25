@@ -43,7 +43,7 @@ class OrderControllerImpl(
     @Operation(summary = "Изменить заказ")
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    override fun patch(@RequestHeader("CustomerId") customerId: Long,@PathVariable
+    override fun patch(@RequestHeader("CustomerId") customerId: Long, @PathVariable
     id: UUID,  @Valid @RequestBody request: PatchOrderRequest) {
         orderService.patch(
             customerId, id,request.toPatchOrderServiceDto(customerId)
@@ -76,8 +76,8 @@ class OrderControllerImpl(
         orderService.patchStatus(id, dto.toPatchOrderStatusServiceDto())
     }
 
-    @GetMapping("/getOrdersByProduct/{productId}")
-    override fun getOrdersInfoByProduct(@PathVariable productId: UUID): Map<UUID, List<OrderInfo>> {
-        return orderService.getOrdersInfoByProduct(productId)
+    @GetMapping("/getOrdersByProduct")
+    override fun getOrdersInfoByProduct(): Map<UUID, List<OrderInfo>> {
+        return orderService.getOrdersInfoByProduct()
     }
 }
