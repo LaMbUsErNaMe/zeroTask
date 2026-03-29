@@ -17,7 +17,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(RemoteServiceException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     fun handleRemoteService(ex: RemoteServiceException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.BAD_GATEWAY,
             message = "External service error: ${ex.message}",
             ex = ex
@@ -26,7 +26,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(EmptyResponseException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     fun handleEmptyResponse(ex: EmptyResponseException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.BAD_GATEWAY,
             message = "External service returned empty response: ${ex.message}",
             ex = ex
@@ -35,7 +35,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(InvalidResponseException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     fun handleInvalidResponse(ex: InvalidResponseException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.BAD_GATEWAY,
             message = "External service returned invalid data: ${ex.message}",
             ex = ex
@@ -44,7 +44,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(IntegrationException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     fun handleIntegration(ex: IntegrationException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.BAD_GATEWAY,
             message = ex.message ?: "Integration error",
             ex = ex
@@ -53,7 +53,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(IllegalStateException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleIllegalState(ex: IllegalStateException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.BAD_REQUEST,
             message = ex.message,
             ex = ex
@@ -62,7 +62,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(NotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handleNotFound(ex: NotFoundException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.NOT_FOUND,
             message = ex.message,
             ex = ex
@@ -71,7 +71,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(AccessForbidden::class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     fun handleAccessForbidden(ex: AccessForbidden): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.FORBIDDEN,
             message = ex.message,
             ex = ex
@@ -80,7 +80,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(ParsingException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleParsingException(ex: ParsingException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.BAD_REQUEST,
             message = ex.message,
             ex = ex
@@ -97,7 +97,7 @@ class GlobalExceptionControllerAdvice {
             )
         }
 
-        return errorResponse(
+        return handleErrorResponse(
             status = HttpStatus.BAD_REQUEST,
             message = content,
             ex = ex
@@ -107,7 +107,7 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(DuplicateException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleDuplicateException(ex: DuplicateException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.BAD_REQUEST,
             message = ex.message,
             ex = ex
@@ -115,7 +115,7 @@ class GlobalExceptionControllerAdvice {
 
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatus(ex: ResponseStatusException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.valueOf(ex.statusCode.value()),
             message = ex.reason,
             ex = ex
@@ -124,13 +124,13 @@ class GlobalExceptionControllerAdvice {
     @ExceptionHandler(RuntimeException::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handleRuntimeException(ex: RuntimeException): ExceptionMessageModel =
-        errorResponse(
+        handleErrorResponse(
             status = HttpStatus.INTERNAL_SERVER_ERROR,
             message = ex.message ?: "Internal server error",
             ex = ex
         )
 
-    private fun errorResponse(
+    private fun handleErrorResponse(
         status: HttpStatus,
         message: Any?,
         ex: Throwable

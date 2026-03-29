@@ -25,7 +25,6 @@ spring:
       ddl-auto: validate
 rest:
   web-clients:
-    chunk-size: 1
     account-number:
       base-url: http://localhost:8081
       get-account-numbers-path: /getAccountsInfo/getAccountNumbers

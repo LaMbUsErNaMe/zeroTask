@@ -13,8 +13,10 @@ import com.example.zero.persistence.repository.OrderItemRepository
 import com.example.zero.persistence.repository.OrderRepository
 import com.example.zero.persistence.repository.ProductRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -26,10 +28,12 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @DataJpaTest
 @ActiveProfiles("test")
-class OrderServiceImplJpaTest {
+class OrderServiceImplIterTest {
 
     @Autowired
     lateinit var customerRepository: CustomerRepository
@@ -43,22 +47,22 @@ class OrderServiceImplJpaTest {
     @Autowired
     lateinit var orderItemRepository: OrderItemRepository
 
-    private lateinit var accountNumberClient: AccountNumberClient
-    private lateinit var innClient: InnClient
+    private lateinit var accountNumberClientMock: AccountNumberClient
+    private lateinit var innClientMock: InnClient
     private lateinit var orderService: OrderServiceImpl
 
     @BeforeEach
     fun prepare() {
-        accountNumberClient = mockk()
-        innClient = mockk()
+        accountNumberClientMock = mockk()
+        innClientMock = mockk()
 
         orderService = OrderServiceImpl(
             customerRepository = customerRepository,
             orderRepository = orderRepository,
             productRepository = productRepository,
             orderItemRepository = orderItemRepository,
-            accountNumberClient = accountNumberClient,
-            innClient = innClient,
+            accountNumberClient = accountNumberClientMock,
+            innClient = innClientMock,
             integrationDispatcher = Dispatchers.Unconfined,
         )
     }
@@ -201,13 +205,13 @@ class OrderServiceImplJpaTest {
             )
         )
 
-        coEvery { accountNumberClient.getAccountNumbersSuspended(any()) } returns mapOf(
+        coEvery { accountNumberClientMock.getAccountNumbersSuspended(any()) } returns mapOf(
             "login1" to "ACC1",
             "login2" to "ACC2",
             "login3" to "ACC3",
         )
 
-        every { innClient.getInnsFuture(any()) } returns CompletableFuture.completedFuture(
+        every { innClientMock.getInnsFuture(any()) } returns CompletableFuture.completedFuture(
             mapOf(
                 "login1" to "INN1",
                 "login2" to "INN2",
@@ -215,24 +219,43 @@ class OrderServiceImplJpaTest {
             )
         )
 
-        val result = orderService.getOrdersInfoByProduct()
+        val resultMap = orderService.getOrdersInfoByProduct()
 
-        assertThat(result.keys)
-            .containsExactlyInAnyOrder(product1.id!!, product2.id!!)
-
-        assertThat(result)
+        assertThat(resultMap)
             .doesNotContainKeys(product3.id!!, product4.id!!)
+            .anySatisfy { uUID, infos ->
+                assertEquals(product1.id, uUID)
+                assertThat(infos)
+                    .hasSize(2)
+                    .anySatisfy {
+                        assertEquals(order1.id, it.id)
+                    }
+                    .anySatisfy {
+                        assertEquals(order2.id, it.id)
+                    }
+            }
+            .anySatisfy { uUID, infos ->
+                assertEquals(product2.id, uUID)
+                assertThat(infos)
+                    .hasSize(1)
+                    .anySatisfy {
+                        assertEquals(order2.id, it.id)
+                    }
+                    .noneSatisfy {
+                        assertEquals(order3.id, it.id)
+                    }
+            }
+            .allSatisfy { _, infos ->
+                assertTrue(infos.isNotEmpty())
+            }
 
-        val product1Orders = result[product1.id!!]
-        assertThat(product1Orders).isNotNull
-        assertThat(product1Orders!!).hasSize(2)
+        verify(exactly = 1){
+            innClientMock.getInnsFuture(any<List<String>>())
+        }
 
-        assertThat(product1Orders.map { it.id })
-            .containsExactlyInAnyOrder(order1.id!!, order2.id!!)
+        coVerify(exactly = 1){
+            accountNumberClientMock.getAccountNumbersSuspended(any<List<String>>())
+        }
 
-        val product2Orders = result[product2.id!!]
-        assertThat(product2Orders).isNotNull
-        assertThat(product2Orders!!).hasSize(1)
-        assertThat(product2Orders.single().id).isEqualTo(order2.id!!)
     }
 }

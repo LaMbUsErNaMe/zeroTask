@@ -245,9 +245,9 @@ class OrderServiceImpl(
         val inns = innsDeferred.await()
 
         ordersByProduct
-            .groupBy { it.productId }
-            .mapValues { entry ->
-                entry.value.map { order ->
+            .groupBy(
+                { it.productId },
+                { order ->
                     OrderInfo(
                         id = order.orderId,
                         customer = CustomerInfo(
@@ -261,7 +261,7 @@ class OrderServiceImpl(
                         quantity = order.quantity
                     )
                 }
-            }
+            )
 
     }
 
