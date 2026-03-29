@@ -24,8 +24,6 @@ interface ProductService {
 
     fun patch(id: UUID, dto: PatchProductServiceDto)
 
-    fun existsChekAndGetProduct(id: UUID) : ProductEntity
-
     fun priceUp()
 
     fun priceUpOpt()

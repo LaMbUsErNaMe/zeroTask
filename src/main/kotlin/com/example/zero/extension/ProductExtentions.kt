@@ -3,7 +3,7 @@ package com.example.zero.extension
 import com.example.zero.controller.dto.product.request.patch.PatchProductRequest
 import com.example.zero.controller.dto.product.request.update.UpdateProductRequest
 import com.example.zero.controller.dto.product.response.ResponseProduct
-import com.example.zero.controller.dto.request.CreateProductRequest
+import com.example.zero.controller.dto.product.request.CreateProductRequest
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.services.dto.product.ProductDto
 import com.example.zero.services.dto.product.CreateProductServiceDto

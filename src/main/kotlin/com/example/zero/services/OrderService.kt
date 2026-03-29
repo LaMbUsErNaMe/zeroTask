@@ -1,9 +1,7 @@
 package com.example.zero.services
 
-import com.example.zero.controller.dto.order.request.patch.PatchOrderRequest
-import com.example.zero.controller.dto.order.request.patch.PatchOrderStatusRequest
+import com.example.zero.controller.dto.order.response.OrderInfo
 import com.example.zero.controller.dto.order.response.ResponseOrder
-import com.example.zero.persistence.entity.OrderEntity
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
@@ -19,9 +17,9 @@ interface OrderService {
 
     fun softDeleteById(customerId: Long, id: UUID)
 
-    fun existsChekAndGetOrder(customerId: Long, id: UUID): OrderEntity
-
     fun confirm(customerId: Long, id: UUID)
 
     fun patchStatus(id: UUID, dto: PatchOrderStatusServiceDto)
+
+    fun getOrdersInfoByProduct(): Map<UUID, List<OrderInfo>>
 }

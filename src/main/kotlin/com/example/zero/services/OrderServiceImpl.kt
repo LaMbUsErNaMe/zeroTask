@@ -1,19 +1,29 @@
 package com.example.zero.services
 
+import com.example.zero.controller.dto.customer.response.CustomerInfo
+import com.example.zero.controller.dto.order.response.OrderInfo
 import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.enums.OrderStatusType
 import com.example.zero.exception.AccessForbidden
 import com.example.zero.exception.NotFoundException
 import com.example.zero.extension.toResponseOrderItem
+import com.example.zero.integration.AccountNumberClient
+import com.example.zero.integration.InnClient
 import com.example.zero.persistence.entity.OrderEntity
 import com.example.zero.persistence.entity.OrderItemEntity
 import com.example.zero.persistence.repository.CustomerRepository
 import com.example.zero.persistence.repository.OrderItemRepository
 import com.example.zero.persistence.repository.OrderRepository
 import com.example.zero.persistence.repository.ProductRepository
+import com.example.zero.projections.OrderInfoProjection
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,7 +35,10 @@ class OrderServiceImpl(
     private val customerRepository: CustomerRepository,
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository,
-    private val orderItemRepository: OrderItemRepository
+    private val orderItemRepository: OrderItemRepository,
+    private val accountNumberClient: AccountNumberClient,
+    private val innClient: InnClient,
+    private val integrationDispatcher: CoroutineDispatcher
 ) : OrderService{
 
     @Transactional
@@ -54,8 +67,10 @@ class OrderServiceImpl(
         val quantityNotEnoughProducts = request.products.filter { productFromDto ->
             products[productFromDto.productId]!!.quantity < productFromDto.quantity
         }
+
         if (!quantityNotEnoughProducts.isEmpty())
-            throw NotFoundException("Не все товары в достаточном кол-ве! Товаров не хватает: $quantityNotEnoughProducts")
+            throw NotFoundException("Не все товары в достаточном кол-ве! " +
+                    "Товаров не хватает: $quantityNotEnoughProducts")
 
         val order = OrderEntity(
             customer = customerRepository.getReferenceById(customerId),
@@ -93,7 +108,6 @@ class OrderServiceImpl(
         id: UUID,
         request: PatchOrderServiceDto
     ) {
-
         val order = existsChekAndGetOrder(customerId, id)
 
         if (order.status != OrderStatusType.CREATED){
@@ -123,7 +137,6 @@ class OrderServiceImpl(
         }
         if (!quantityNotEnoughProducts.isEmpty())
             throw NotFoundException("Заказ не обновлён! Не все товары в достаточном кол-ве!")
-
 
         request.products.forEach { productFromDto ->
             val product = products[productFromDto.productId]!!
@@ -172,7 +185,6 @@ class OrderServiceImpl(
 
         val converted = itemsFromProj.map { it.toResponseOrderItem() }
 
-
         val totalPrice = converted.sumOf { it.productPrice.multiply(it.quantity) }
 
         val response = ResponseOrder(
@@ -198,7 +210,7 @@ class OrderServiceImpl(
 
         orderItems.forEach { productFromOrder ->
             val product = products[productFromOrder.productId]!!
-            product.quantity -= productFromOrder.quantity
+            product.quantity += productFromOrder.quantity
             product.quantityChangedDateTime = LocalDateTime.now()
         }
 
@@ -208,12 +220,58 @@ class OrderServiceImpl(
     }
 
     override fun patchStatus(id: UUID, dto: PatchOrderStatusServiceDto) {
-
         val updated = orderRepository.updateStatus(id, dto.status)
         if (updated == 0) throw NotFoundException("Заказ не найден!")
     }
 
-    override fun existsChekAndGetOrder(customerId: Long, id: UUID): OrderEntity {
+    @Transactional
+    override fun getOrdersInfoByProduct(): Map<UUID, List<OrderInfo>> = runBlocking {
+
+        val ordersByProduct = existsChekAndGetOrdersByProduct()
+
+        val logins = ordersByProduct.map { it.customerLogin }.distinct()
+
+        val accountNumbersDeferred = async(integrationDispatcher) {
+            logger.info{ "Thread: ${Thread.currentThread().name} getAccountNumbersSuspended" }
+            accountNumberClient.getAccountNumbersSuspended(logins)
+        }
+
+        val innsDeferred = async(integrationDispatcher) {
+            logger.info{ "Thread: ${Thread.currentThread().name} getInnsFuture" }
+            innClient.getInnsFuture(logins).await()
+        }
+
+        val accountNumbers = accountNumbersDeferred.await()
+        val inns = innsDeferred.await()
+
+        ordersByProduct
+            .groupBy(
+                { it.productId },
+                { order ->
+                    OrderInfo(
+                        id = order.orderId,
+                        customer = CustomerInfo(
+                            id = order.customerId,
+                            email = order.customerLogin,
+                            accountNumber = accountNumbers[order.customerLogin] ?: "ОТСУТСТВУЕТ!",
+                            inn = inns[order.customerLogin] ?: "ОТСУТСТВУЕТ!"
+                        ),
+                        status = order.status,
+                        deliveryAddress = order.deliveryAddress,
+                        quantity = order.quantity
+                    )
+                }
+            )
+
+    }
+
+    @Transactional
+    override fun confirm(customerId: Long, id: UUID) {
+        existsChekAndGetOrder(customerId, id)
+        patchStatus(id,PatchOrderStatusServiceDto(OrderStatusType.CONFIRMED))
+    }
+
+    private fun existsChekAndGetOrder(customerId: Long, id: UUID): OrderEntity {
         val order = orderRepository.findByIdOrNull(id)
             ?: throw NotFoundException("Заказ [$id] не найден!")
         if(order.customer.id != customerId){
@@ -222,8 +280,16 @@ class OrderServiceImpl(
         return order
     }
 
-    override fun confirm(customerId: Long, id: UUID) {
-        existsChekAndGetOrder(customerId, id)
-        patchStatus(id,PatchOrderStatusServiceDto(OrderStatusType.CONFIRMED))
+    private fun existsChekAndGetOrdersByProduct(): List<OrderInfoProjection> {
+        val ordersByProduct = orderRepository.getOrderInfoProjectionsByStatusIn(ALLOWED_STATUSES)
+        if (ordersByProduct.isEmpty()) {
+            throw NotFoundException("Нет актуальных заказов!")
+        }
+        return ordersByProduct
+    }
+
+    private companion object {
+        val logger = KotlinLogging.logger {}
+        val ALLOWED_STATUSES = listOf(OrderStatusType.CONFIRMED, OrderStatusType.CREATED)
     }
 }

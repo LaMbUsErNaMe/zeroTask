@@ -7,7 +7,7 @@ import java.time.LocalDateTime
  */
 
 class ExceptionMessageModel (
-    var status: Int? = null,
-    var message: Any? = null,
+    var status: Int,
+    var message: Any?,
     var timestamp: LocalDateTime = LocalDateTime.now()
 )

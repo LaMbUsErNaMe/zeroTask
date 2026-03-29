@@ -1,10 +1,9 @@
 package com.example.zero
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
-import org.springframework.scheduling.annotation.EnableScheduling
 
 /**
  * Это точка входа в приложение @SpringBootApplication аннотация которая
@@ -22,6 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
  */
 @EnableJpaAuditing
 @SpringBootApplication
+@ConfigurationPropertiesScan
 class ZeroApplication
 
 fun main(args: Array<String>) {

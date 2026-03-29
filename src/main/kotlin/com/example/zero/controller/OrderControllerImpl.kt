@@ -3,6 +3,7 @@ package com.example.zero.controller
 import com.example.zero.controller.dto.order.request.CreateOrderRequest
 import com.example.zero.controller.dto.order.request.patch.PatchOrderRequest
 import com.example.zero.controller.dto.order.request.patch.PatchOrderStatusRequest
+import com.example.zero.controller.dto.order.response.OrderInfo
 import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.extension.toCreateOrderServiceDto
 import com.example.zero.extension.toPatchOrderServiceDto
@@ -34,14 +35,16 @@ class OrderControllerImpl(
     @Operation(summary = "Создать заказ")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    override fun create(@RequestHeader("CustomerId") customerId: Long, @Valid @RequestBody request: CreateOrderRequest): UUID {
+    override fun create(@RequestHeader("CustomerId") customerId: Long,
+                        @Valid @RequestBody request: CreateOrderRequest): UUID {
         return orderService.save(customerId, request.toCreateOrderServiceDto(customerId))
     }
 
     @Operation(summary = "Изменить заказ")
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    override fun patch(@RequestHeader("CustomerId") customerId: Long,@PathVariable id: UUID,  @Valid @RequestBody request: PatchOrderRequest) {
+    override fun patch(@RequestHeader("CustomerId") customerId: Long, @PathVariable
+    id: UUID,  @Valid @RequestBody request: PatchOrderRequest) {
         orderService.patch(
             customerId, id,request.toPatchOrderServiceDto(customerId)
         )
@@ -71,5 +74,10 @@ class OrderControllerImpl(
         @PathVariable id: UUID,@RequestBody dto: PatchOrderStatusRequest
     ) {
         orderService.patchStatus(id, dto.toPatchOrderStatusServiceDto())
+    }
+
+    @GetMapping("/getOrdersByProduct")
+    override fun getOrdersInfoByProduct(): Map<UUID, List<OrderInfo>> {
+        return orderService.getOrdersInfoByProduct()
     }
 }

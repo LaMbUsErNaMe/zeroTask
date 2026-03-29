@@ -1,11 +1,10 @@
-package com.example.zero.controller.dto.request
+package com.example.zero.controller.dto.product.request
 
 import com.example.zero.enums.CategoryType
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
-import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 
@@ -53,7 +52,7 @@ data class CreateProductRequest(
     val price: BigDecimal,
 
     @field:NotNull
-    @field:PositiveOrZero
+    @field:Positive
     @field:Schema(
         description = "Кол-во",
         example = "99",
