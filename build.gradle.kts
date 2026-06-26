@@ -37,21 +37,31 @@ dependencies {
 	implementation ("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("io.github.oshai:kotlin-logging-jvm:8.0.01")
 
+	implementation("org.springframework.kafka:spring-kafka")
+
+
+
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+
+	implementation("com.fasterxml.jackson.core:jackson-databind")
+
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 
 
 	runtimeOnly("org.postgresql:postgresql")
+
+	testImplementation("org.springframework.kafka:spring-kafka-test")
+
     testImplementation("com.ninja-squad:springmockk:5.0.1")
 	testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")

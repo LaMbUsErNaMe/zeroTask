@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zero-deployment
+  labels:
+    app: zero-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zero-app
+  template:
+    metadata:
+      labels:
+        app: zero-app
+    spec:
+      containers:
+        - name: zero-app
+          image: silly/zerov3:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+              name: web
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: zero-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: zero-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: zero-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zero-secret
+                  key: DB_PASSWORD
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: zero-config
+                  key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 20
+            timeoutSeconds: 2
+            periodSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 20
+            timeoutSeconds: 2
+            periodSeconds: 10
+            failureThreshold: 3
+
+

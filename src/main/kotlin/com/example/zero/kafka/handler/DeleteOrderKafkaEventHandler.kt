@@ -1,0 +1,25 @@
+package com.example.zero.kafka.handler
+
+import com.example.zero.kafka.dto.DeleteOrderKafkaEvent
+import com.example.zero.kafka.dto.OrderKafkaEvent
+import com.example.zero.services.OrderService
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.stereotype.Service
+
+@Service
+@ConditionalOnProperty(prefix = "app", name = ["kafka.enabled"], havingValue = "true", matchIfMissing = false)
+class DeleteOrderKafkaEventHandler(
+    private val orderService: OrderService
+) : OrderKafkaEventHandler {
+
+    override fun supports(event: OrderKafkaEvent): Boolean =
+        event is DeleteOrderKafkaEvent
+
+    override fun handle(event: OrderKafkaEvent){
+        val deleteEvent = event as DeleteOrderKafkaEvent
+        orderService.softDeleteById(
+            customerId = requireNotNull(deleteEvent.customerId),
+            id = requireNotNull(deleteEvent.orderId)
+        )
+    }
+}
