@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" id="Definitions_OrderConfirmation" targetNamespace="http://example.com/zero/order-confirmation" exporter="Camunda Modeler" exporterVersion="5.48.0">
+  <bpmn:message id="Message_OrderConfirmationResult" name="orderConfirmationResultMessage" />
+  <bpmn:collaboration id="Collaboration_1mj5jyp">
+    <bpmn:participant id="Participant_1htyte1" name="Подтверждение заказа" processRef="order-confirmation" />
+  </bpmn:collaboration>
+  <bpmn:process id="order-confirmation" name="Подтверждение заказа" isExecutable="true" camunda:historyTimeToLive="30">
+    <bpmn:sequenceFlow id="FlowStartPending" sourceRef="StartEventConfirmRequested" targetRef="TaskMarkConfirmationPending" />
+    <bpmn:sequenceFlow id="FlowPendingValidate" sourceRef="TaskMarkConfirmationPending" targetRef="TaskValidateOrder" />
+    <bpmn:sequenceFlow id="FlowValidateValidGateway" sourceRef="TaskValidateOrder" targetRef="GatewayOrderValid" />
+    <bpmn:sequenceFlow id="FlowRequestWait" sourceRef="TaskRequestConfirmation" targetRef="EventWaitConfirmationResult" />
+    <bpmn:sequenceFlow id="FlowWaitResultGateway" sourceRef="EventWaitConfirmationResult" targetRef="GatewayConfirmationResult" />
+    <bpmn:sequenceFlow id="FlowResultConfirm" name="Да" sourceRef="GatewayConfirmationResult" targetRef="TaskConfirmOrder">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${expressionHelper.confirmationSuccessful(execution)}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="FlowConfirmEnd" sourceRef="TaskConfirmOrder" targetRef="EndEventCompleted" />
+    <bpmn:sequenceFlow id="Flow_Result_Reject" name="Нет" sourceRef="GatewayConfirmationResult" targetRef="EventCompensateReservation" />
+    <bpmn:sequenceFlow id="FlowInvalidReject" name="Нет" sourceRef="GatewayOrderValid" targetRef="EventCompensateReservation" />
+    <bpmn:sequenceFlow id="FlowRejectEnd" sourceRef="TaskRejectOrder" targetRef="EndEventCompleted" />
+    <bpmn:sequenceFlow id="FlowValidRequest" name="Да" sourceRef="GatewayOrderValid" targetRef="TaskRequestConfirmation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${expressionHelper.orderValid(execution)}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="TaskMarkConfirmationPending" name="Зафиксировать резерв" camunda:delegateExpression="${markConfirmationPendingDelegate}">
+      <bpmn:incoming>FlowStartPending</bpmn:incoming>
+      <bpmn:outgoing>FlowPendingValidate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GatewayOrderValid" name="Заказ прошёл проверку?" default="FlowInvalidReject">
+      <bpmn:incoming>FlowValidateValidGateway</bpmn:incoming>
+      <bpmn:outgoing>FlowValidRequest</bpmn:outgoing>
+      <bpmn:outgoing>FlowInvalidReject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="TaskValidateOrder" name="Проверить заказ" camunda:delegateExpression="${validateOrderDelegate}">
+      <bpmn:incoming>FlowPendingValidate</bpmn:incoming>
+      <bpmn:outgoing>FlowValidateValidGateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="BoundaryReservationCompensation" attachedToRef="TaskMarkConfirmationPending">
+      <bpmn:compensateEventDefinition />
+    </bpmn:boundaryEvent>
+    <bpmn:startEvent id="StartEventConfirmRequested" name="Получен запрос">
+      <bpmn:outgoing>FlowStartPending</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="TaskRequestConfirmation" name="Запросить подтверждение" camunda:asyncBefore="true" camunda:delegateExpression="${requestConfirmationDelegate}">
+      <bpmn:incoming>FlowValidRequest</bpmn:incoming>
+      <bpmn:outgoing>FlowRequestWait</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="FlowCompensationReject" sourceRef="EventCompensateReservation" targetRef="TaskRejectOrder" />
+    <bpmn:serviceTask id="TaskReleaseReservation" name="Вернуть товары" isForCompensation="true" camunda:delegateExpression="${releaseReservationDelegate}" />
+    <bpmn:intermediateCatchEvent id="EventWaitConfirmationResult" name="Ожидать результат">
+      <bpmn:incoming>FlowRequestWait</bpmn:incoming>
+      <bpmn:outgoing>FlowWaitResultGateway</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_OrderConfirmationResult" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="GatewayConfirmationResult" name="Подтверждено?" default="Flow_Result_Reject">
+      <bpmn:incoming>FlowWaitResultGateway</bpmn:incoming>
+      <bpmn:outgoing>FlowResultConfirm</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Result_Reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEventCompleted" name="Процесс завершён">
+      <bpmn:incoming>FlowConfirmEnd</bpmn:incoming>
+      <bpmn:incoming>FlowRejectEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="TaskConfirmOrder" name="Подтвердить заказ" camunda:asyncBefore="true" camunda:delegateExpression="${confirmOrderDelegate}">
+      <bpmn:incoming>FlowResultConfirm</bpmn:incoming>
+      <bpmn:outgoing>FlowConfirmEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="TaskRejectOrder" name="Отклонить заказ" camunda:asyncBefore="true" camunda:delegateExpression="${rejectOrderDelegate}">
+      <bpmn:incoming>FlowCompensationReject</bpmn:incoming>
+      <bpmn:outgoing>FlowRejectEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="EventCompensateReservation" name="Компенсировать резерв">
+      <bpmn:incoming>FlowInvalidReject</bpmn:incoming>
+      <bpmn:incoming>Flow_Result_Reject</bpmn:incoming>
+      <bpmn:outgoing>FlowCompensationReject</bpmn:outgoing>
+      <bpmn:compensateEventDefinition />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:association id="AssociationReservationCompensation" associationDirection="One" sourceRef="BoundaryReservationCompensation" targetRef="TaskReleaseReservation" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_OrderConfirmation">
+    <bpmndi:BPMNPlane id="BPMNPlane_OrderConfirmation" bpmnElement="Collaboration_1mj5jyp">
+      <bpmndi:BPMNShape id="Participant_1htyte1_di" bpmnElement="Participant_1htyte1" isHorizontal="true">
+        <dc:Bounds x="130" y="70" width="1340" height="280" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Pending" bpmnElement="TaskMarkConfirmationPending">
+        <dc:Bounds x="310" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_ValidGateway" bpmnElement="GatewayOrderValid" isMarkerVisible="true">
+        <dc:Bounds x="620" y="165" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="611" y="132" width="72" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Validate" bpmnElement="TaskValidateOrder">
+        <dc:Bounds x="470" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="StartEventConfirmRequested">
+        <dc:Bounds x="222" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="164" y="176" width="51" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Request" bpmnElement="TaskRequestConfirmation">
+        <dc:Bounds x="740" y="150" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_ReleaseReservation" bpmnElement="TaskReleaseReservation">
+        <dc:Bounds x="389" y="243" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Wait" bpmnElement="EventWaitConfirmationResult" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="920" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="913" y="138.5" width="50" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_ResultGateway" bpmnElement="GatewayConfirmationResult" isMarkerVisible="true">
+        <dc:Bounds x="1000" y="165" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1057" y="183" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End" bpmnElement="EndEventCompleted">
+        <dc:Bounds x="1400" y="173" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1344" y="177" width="51" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Confirm" bpmnElement="TaskConfirmOrder" bioc:stroke="#205022" bioc:fill="#c8e6c9" color:background-color="#c8e6c9" color:border-color="#205022">
+        <dc:Bounds x="1171" y="99" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Reject" bpmnElement="TaskRejectOrder" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
+        <dc:Bounds x="1227" y="208" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_CompensateReservation" bpmnElement="EventCompensateReservation">
+        <dc:Bounds x="1137" y="230" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1113" y="271" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Reservation_Compensation" bpmnElement="AssociationReservationCompensation">
+        <di:waypoint x="365" y="248" />
+        <di:waypoint x="365" y="283" />
+        <di:waypoint x="389" y="283" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Shape_CompensationBoundary" bpmnElement="BoundaryReservationCompensation">
+        <dc:Bounds x="347" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Start_Pending" bpmnElement="FlowStartPending">
+        <di:waypoint x="258" y="190" />
+        <di:waypoint x="310" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Pending_Validate" bpmnElement="FlowPendingValidate">
+        <di:waypoint x="420" y="190" />
+        <di:waypoint x="470" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Validate_Gateway" bpmnElement="FlowValidateValidGateway">
+        <di:waypoint x="580" y="190" />
+        <di:waypoint x="620" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Request_Wait" bpmnElement="FlowRequestWait">
+        <di:waypoint x="860" y="190" />
+        <di:waypoint x="920" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Wait_Gateway" bpmnElement="FlowWaitResultGateway">
+        <di:waypoint x="956" y="190" />
+        <di:waypoint x="1000" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Result_Confirm" bpmnElement="FlowResultConfirm" bioc:stroke="#205022" color:border-color="#205022">
+        <di:waypoint x="1025" y="165" />
+        <di:waypoint x="1025" y="139" />
+        <di:waypoint x="1171" y="139" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1002" y="147" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Confirm_End" bpmnElement="FlowConfirmEnd">
+        <di:waypoint x="1281" y="139" />
+        <di:waypoint x="1418" y="139" />
+        <di:waypoint x="1418" y="173" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Result_Reject" bpmnElement="Flow_Result_Reject" bioc:stroke="#831311" color:border-color="#831311">
+        <di:waypoint x="1025" y="215" />
+        <di:waypoint x="1025" y="248" />
+        <di:waypoint x="1137" y="248" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="997" y="219" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Invalid_Reject" bpmnElement="FlowInvalidReject" bioc:stroke="#831311" color:border-color="#831311">
+        <di:waypoint x="645" y="215" />
+        <di:waypoint x="645" y="248" />
+        <di:waypoint x="1137" y="248" />
+        <bpmndi:BPMNLabel color:color="#831311">
+          <dc:Bounds x="614" y="218" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Reject_End" bpmnElement="FlowRejectEnd">
+        <di:waypoint x="1337" y="248" />
+        <di:waypoint x="1418" y="248" />
+        <di:waypoint x="1418" y="209" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Valid_Request" bpmnElement="FlowValidRequest" bioc:stroke="#205022" color:border-color="#205022">
+        <di:waypoint x="670" y="190" />
+        <di:waypoint x="740" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="698" y="173" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Compensation_Reject" bpmnElement="FlowCompensationReject">
+        <di:waypoint x="1173" y="248" />
+        <di:waypoint x="1227" y="248" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

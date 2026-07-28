@@ -50,6 +50,12 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: "true"
 
+  excamad:
+    image: kotovdenis/excamad:latest
+    restart: unless-stopped
+    ports:
+      - "8086:8080"
+
 volumes:
   db_data:
   kafka_data:
