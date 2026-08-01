@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="v1.1-create-product-image" author="Vlad">
+        <comment>Create product image table</comment>
+
+        <sqlFile
+                path="create-product-image-table.sql"
+                encoding="utf8"
+                relativeToChangelogFile="true"
+                splitStatements="true"
+                stripComments="true"/>
+
+        <rollback>
+            <sqlFile
+                    path="drop-product-image-table.sql"
+                    encoding="utf8"
+                    relativeToChangelogFile="true"
+                    splitStatements="true"
+                    stripComments="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -4,8 +4,8 @@ import com.example.zero.controller.dto.customer.response.CustomerInfo
 import com.example.zero.controller.dto.order.response.OrderInfo
 import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.enums.OrderStatusType
-import com.example.zero.exception.AccessForbidden
-import com.example.zero.exception.NotFoundException
+import io.github.lambusername.exceptionhandler.AccessForbidden
+import io.github.lambusername.exceptionhandler.NotFoundException
 import com.example.zero.extension.toResponseOrderItem
 import com.example.zero.integration.AccountNumberClient
 import com.example.zero.integration.InnClient

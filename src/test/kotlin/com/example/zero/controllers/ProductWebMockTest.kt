@@ -4,7 +4,7 @@ import com.example.zero.controller.ProductController
 import com.example.zero.controller.ProductControllerImpl
 import com.example.zero.controller.dto.product.request.CreateProductRequest
 import com.example.zero.enums.CategoryType
-import com.example.zero.exception.GlobalExceptionControllerAdvice
+import io.github.lambusername.exceptionhandler.GlobalExceptionControllerAdvice
 import com.example.zero.services.ProductService
 import com.example.zero.services.dto.product.ProductDto
 import com.example.zero.services.dto.product.CreateProductServiceDto

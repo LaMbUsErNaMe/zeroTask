@@ -1,8 +1,8 @@
 package com.example.zero.integration
 
-import com.example.zero.exception.EmptyResponseException
-import com.example.zero.exception.InvalidResponseException
-import com.example.zero.exception.RemoteServiceException
+import io.github.lambusername.exceptionhandler.EmptyResponseException
+import io.github.lambusername.exceptionhandler.InvalidResponseException
+import io.github.lambusername.exceptionhandler.RemoteServiceException
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking

@@ -27,6 +27,7 @@ java {
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 }
 
 kapt {
@@ -34,15 +35,32 @@ kapt {
 }
 
 dependencies {
+	implementation("io.github.lambusername:exception-handler-spring-boot-starter:0.1.0")
+
 	implementation ("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("io.github.oshai:kotlin-logging-jvm:8.0.01")
 
 	implementation("org.springframework.kafka:spring-kafka")
 
 	implementation("org.camunda.bpm:camunda-engine-plugin-spin:7.24.0")
-	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest:7.24.0")
-	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:7.24.0")
+	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest:7.24.0"){
+		exclude(
+			group = "com.sun.xml.bind",
+			module = "jaxb-impl"
+		)
+	}
+	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:7.24.0"){
+		exclude(
+			group = "com.sun.xml.bind",
+			module = "jaxb-impl"
+		)
+	}
 	implementation("org.camunda.spin:camunda-spin-dataformat-json-jackson:7.24.0")
+
+	implementation(
+		platform("software.amazon.awssdk:bom:2.47.3")
+	)
+	implementation("software.amazon.awssdk:s3")
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 

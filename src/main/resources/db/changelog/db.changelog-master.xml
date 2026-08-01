@@ -10,4 +10,12 @@
         <tagDatabase tag="v.1.0"/>
     </changeSet>
 
+    <include
+            file="v1.1/v1.1-changelog.xml"
+            relativeToChangelogFile="true"/>
+
+    <changeSet id="tag-v1.1" author="Vlad">
+        <tagDatabase tag="v1.1"/>
+    </changeSet>
+
 </databaseChangeLog>
