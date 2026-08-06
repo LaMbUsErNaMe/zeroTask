@@ -27,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -114,9 +115,19 @@ class OrderServiceImpl(
             throw AccessForbidden("Этот заказ нельзя изменять!")
         }
 
+        order.deliveryAddress = request.deliveryAddress
+
+        orderRepository.save(order)
+
         val oldOrderItems = orderItemRepository.findOrderProductsForUpdate(id)
 
-        val productIds = request.products.map { it.productId }.distinct()
+        val requestedProducts = request.products
+            .groupBy { it.productId }
+            .mapValues { (_, items) ->
+                items.fold(BigDecimal.ZERO) { quantity, item -> quantity + item.quantity }
+            }
+
+        val productIds = requestedProducts.keys
 
         val products = productRepository.findAllById(productIds)
             .associateBy { it.id!! }
@@ -126,34 +137,47 @@ class OrderServiceImpl(
             throw NotFoundException("Заказ не обновлён!Товары не найдены: $missingProducts")
         }
 
-        val notAvailableProds = products.values.filterNot { !it.isAvailable}
+        val notAvailableProds = products.values.filter { !it.isAvailable}
         if (notAvailableProds.isNotEmpty()) {
             val notAvailableIds = notAvailableProds.map { it.id!! }
             throw NotFoundException("Заказ не создан! Товары недоступны: $notAvailableIds")
         }
 
-        val quantityNotEnoughProducts = request.products.filter { productFromDto ->
-            products[productFromDto.productId]!!.quantity < productFromDto.quantity
+        val quantityNotEnoughProducts = requestedProducts.filter { (productId, requestedQuantity) ->
+            val oldQuantity = oldOrderItems
+                .firstOrNull { it.productId == productId }
+                ?.quantity
+                ?: BigDecimal.ZERO
+            val delta = requestedQuantity - oldQuantity
+
+            delta > BigDecimal.ZERO && products[productId]!!.quantity < delta
         }
-        if (!quantityNotEnoughProducts.isEmpty())
+        if (quantityNotEnoughProducts.isNotEmpty())
             throw NotFoundException("Заказ не обновлён! Не все товары в достаточном кол-ве!")
 
-        request.products.forEach { productFromDto ->
-            val product = products[productFromDto.productId]!!
-            product.quantity -= productFromDto.quantity
-            product.quantityChangedDateTime = LocalDateTime.now()
+        requestedProducts.forEach { (productId, requestedQuantity) ->
+            val oldQuantity = oldOrderItems
+                .firstOrNull { it.productId == productId }
+                ?.quantity
+                ?: BigDecimal.ZERO
+            val delta = requestedQuantity - oldQuantity
+
+            if (delta != BigDecimal.ZERO) {
+                val product = products[productId]!!
+                product.quantity -= delta
+                product.quantityChangedDateTime = LocalDateTime.now()
+            }
         }
 
         productRepository.saveAll(products.values)
 
         val itemsToSave = mutableListOf<OrderItemEntity>()
 
-        for (productFromDto in request.products) {
-            val product = products[productFromDto.productId]!!
+        for ((productId, requestedQuantity) in requestedProducts) {
+            val product = products[productId]!!
 
             val existing = oldOrderItems.find {
-                it.productId == productFromDto.productId &&
-                        it.productPrice == product.price
+                it.productId == productId
             }
 
             if (existing != null) {
@@ -162,15 +186,15 @@ class OrderServiceImpl(
                     order = order,
                     product = product,
                     productPrice = existing.productPrice,
-                    quantity = existing.quantity + productFromDto.quantity
+                    quantity = requestedQuantity
                 )
                 itemsToSave.add(existingItem)
             } else {
                 val newItem = OrderItemEntity(
                     order = order,
-                    product = productRepository.getReferenceById(productFromDto.productId),
+                    product = product,
                     productPrice = product.price,
-                    quantity = productFromDto.quantity
+                    quantity = requestedQuantity
                 )
                 itemsToSave.add(newItem)
             }
@@ -219,6 +243,7 @@ class OrderServiceImpl(
         patchStatus(id,PatchOrderStatusServiceDto(OrderStatusType.CANCELED))
     }
 
+    @Transactional
     override fun patchStatus(id: UUID, dto: PatchOrderStatusServiceDto) {
         val updated = orderRepository.updateStatus(id, dto.status)
         if (updated == 0) throw NotFoundException("Заказ не найден!")
