@@ -56,6 +56,7 @@ dependencies {
 		)
 	}
 	implementation("org.camunda.spin:camunda-spin-dataformat-json-jackson:7.24.0")
+	implementation("org.apache.groovy:groovy-jsr223:4.0.30")
 
 	implementation(
 		platform("software.amazon.awssdk:bom:2.47.3")
@@ -83,7 +84,9 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 
 	testImplementation("org.springframework.kafka:spring-kafka-test")
-    testImplementation("com.ninja-squad:springmockk:4.0.2")
+	testImplementation("org.wiremock:wiremock-standalone:3.13.2")
+	testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
+	testImplementation("com.ninja-squad:springmockk:4.0.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	implementation("com.h2database:h2")

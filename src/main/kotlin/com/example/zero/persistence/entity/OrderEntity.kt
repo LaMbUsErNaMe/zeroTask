@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.time.LocalDate
 import java.util.UUID
 
 @EntityListeners(AuditingEntityListener::class)
@@ -32,5 +33,11 @@ class OrderEntity (
         var status: OrderStatusType = OrderStatusType.CREATED,
 
         @Column(name = "delivery_address", updatable = true, nullable = false)
-        var deliveryAddress: String
+        var deliveryAddress: String,
+
+        @Column(name = "delivery_date")
+        var deliveryDate: LocalDate? = null,
+
+        @Column(name = "process_business_key", unique = true)
+        var processBusinessKey: String? = null
 )

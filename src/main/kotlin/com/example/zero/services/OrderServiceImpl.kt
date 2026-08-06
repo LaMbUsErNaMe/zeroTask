@@ -20,6 +20,7 @@ import com.example.zero.services.dto.order.ConfirmationValidationResult
 import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
+import com.example.zero.services.dto.order.OrderConfirmationContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -204,7 +206,7 @@ class OrderServiceImpl(
     }
 
     override fun findById(customerId: Long, id: UUID): ResponseOrder {
-        existsChekAndGetOrder(customerId, id)
+        val order = existsChekAndGetOrder(customerId, id)
 
         val itemsFromProj = orderItemRepository.findOrderProducts(id)
 
@@ -215,7 +217,9 @@ class OrderServiceImpl(
         val response = ResponseOrder(
             orderId = id,
             products = converted,
-            totalPrice = totalPrice
+            totalPrice = totalPrice,
+            status = order.status,
+            deliveryDate = order.deliveryDate,
         )
         return response
     }
@@ -295,13 +299,13 @@ class OrderServiceImpl(
     override fun confirm(customerId: Long, id: UUID) {
         val order = existsChekAndGetOrder(customerId, id)
         if (order.status == OrderStatusType.CONFIRMED) return
-        check(order.status == OrderStatusType.CONFIRMATION_PENDING) {
+        check(order.status == OrderStatusType.PROCESSING) {
             "Заказ [$id] нельзя подтвердить из статуса ${order.status}"
         }
 
         val updated = orderRepository.updateStatusIfCurrent(
             id = id,
-            expectedStatus = OrderStatusType.CONFIRMATION_PENDING,
+            expectedStatus = order.status,
             newStatus = OrderStatusType.CONFIRMED,
         )
         check(updated == 1) { "Статус заказа [$id] был изменён параллельно" }
@@ -315,25 +319,66 @@ class OrderServiceImpl(
     @Transactional(readOnly = true)
     override fun canStartConfirmation(customerId: Long, id: UUID): Boolean {
         val order = existsChekAndGetOrder(customerId, id)
-        return order.status == OrderStatusType.CREATED
+        return order.status == OrderStatusType.CREATED ||
+            (order.status == OrderStatusType.PROCESSING && order.processBusinessKey != null)
+    }
+
+    @Transactional(readOnly = true)
+    override fun getConfirmationContext(customerId: Long, id: UUID): OrderConfirmationContext {
+        val order = existsChekAndGetOrder(customerId, id)
+        check(order.status == OrderStatusType.CREATED || order.status == OrderStatusType.PROCESSING) {
+            "Order [$id] cannot be confirmed from status ${order.status}"
+        }
+
+        val login = order.customer.login
+        val items = orderItemRepository.findOrderProducts(id)
+        check(items.isNotEmpty()) { "Order [$id] has no items" }
+        val inn = innClient.getInnsBlocking(listOf(login))[login]
+            ?: error("INN was not returned for customer $login")
+        val accountNumber = accountNumberClient.getAccountNumbersBlocking(listOf(login))[login]
+            ?: error("Account number was not returned for customer $login")
+
+        return OrderConfirmationContext(
+            orderId = id,
+            customerId = customerId,
+            login = login,
+            deliveryAddress = order.deliveryAddress,
+            inn = inn,
+            accountNumber = accountNumber,
+            amount = items.sumOf { it.productPrice.multiply(it.quantity) },
+            existingBusinessKey = order.processBusinessKey,
+        )
     }
 
     @Transactional
-    override fun markConfirmationPending(customerId: Long, id: UUID) {
-        existsChekAndGetOrder(customerId, id)
-        val updated = orderRepository.updateStatusIfCurrent(
+    override fun startProcessing(customerId: Long, id: UUID, businessKey: String) {
+        val order = existsChekAndGetOrder(customerId, id)
+        if (order.status == OrderStatusType.PROCESSING && order.processBusinessKey == businessKey) return
+
+        val updated = orderRepository.startProcessing(
             id = id,
             expectedStatus = OrderStatusType.CREATED,
-            newStatus = OrderStatusType.CONFIRMATION_PENDING,
+            newStatus = OrderStatusType.PROCESSING,
+            businessKey = businessKey,
         )
-        check(updated == 1) { "Заказ [$id] уже обрабатывается или изменён параллельно" }
+        check(updated == 1) { "Order [$id] is already processing or was changed concurrently" }
+    }
+
+    @Transactional
+    override fun completeConfirmation(id: UUID, deliveryDate: LocalDate) {
+        val updated = orderRepository.completeConfirmation(
+            id = id,
+            status = OrderStatusType.CONFIRMED,
+            deliveryDate = deliveryDate,
+        )
+        check(updated == 1) { "Order [$id] was not found" }
     }
 
     @Transactional(readOnly = true)
     override fun confirmationValidation(customerId: Long, id: UUID): ConfirmationValidationResult {
         val order = existsChekAndGetOrder(customerId, id)
         val reason = when {
-            order.status != OrderStatusType.CONFIRMATION_PENDING ->
+            order.status != OrderStatusType.PROCESSING ->
                 "Заказ находится в неподходящем статусе: ${order.status}"
 
             !order.customer.isActive ->
@@ -371,17 +416,35 @@ class OrderServiceImpl(
         val order = orderRepository.findByIdOrNull(id)
             ?: throw NotFoundException("Заказ [$id] не найден!")
         if (order.status == OrderStatusType.REJECTED) return
-        check(order.status == OrderStatusType.CONFIRMATION_PENDING) {
+        check(order.status == OrderStatusType.PROCESSING) {
             "Заказ [$id] нельзя отклонить из статуса ${order.status}"
         }
 
         val updated = orderRepository.updateStatusIfCurrent(
             id = id,
-            expectedStatus = OrderStatusType.CONFIRMATION_PENDING,
+            expectedStatus = order.status,
             newStatus = OrderStatusType.REJECTED,
         )
         check(updated == 1) { "Статус заказа [$id] был изменён параллельно" }
         logger.info { "Заказ [$id] отклонён: ${reason ?: "причина не указана"}" }
+    }
+
+    @Transactional
+    override fun cancelConfirmation(id: UUID, reason: String?) {
+        val order = orderRepository.findByIdOrNull(id)
+            ?: throw NotFoundException("Заказ [$id] не найден!")
+        if (order.status == OrderStatusType.CANCELED) return
+        check(order.status == OrderStatusType.PROCESSING) {
+            "Заказ [$id] нельзя отменить из статуса ${order.status}"
+        }
+
+        val updated = orderRepository.updateStatusIfCurrent(
+            id = id,
+            expectedStatus = order.status,
+            newStatus = OrderStatusType.CANCELED,
+        )
+        check(updated == 1) { "Статус заказа [$id] был изменён параллельно" }
+        logger.info { "Подтверждение заказа [$id] отменено: ${reason ?: "причина не указана"}" }
     }
 
     private fun existsChekAndGetOrder(customerId: Long, id: UUID): OrderEntity {

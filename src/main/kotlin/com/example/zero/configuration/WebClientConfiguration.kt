@@ -23,4 +23,32 @@ class WebClientConfiguration(private val restProperties: RestProperties) {
             .baseUrl(restProperties.webClients.inn.baseUrl)
             .defaultHeader("Content-Type", "application/json")
             .build()
+
+    @Bean
+    fun contractWebClient(builder: WebClient.Builder): WebClient =
+        builder
+            .baseUrl(restProperties.webClients.contract.baseUrl)
+            .defaultHeader("Content-Type", "application/json")
+            .build()
+
+    @Bean
+    fun deliveryWebClient(builder: WebClient.Builder): WebClient =
+        builder
+            .baseUrl(restProperties.webClients.delivery.baseUrl)
+            .defaultHeader("Content-Type", "application/json")
+            .build()
+
+    @Bean
+    fun paymentWebClient(builder: WebClient.Builder): WebClient =
+        builder
+            .baseUrl(restProperties.webClients.payment.baseUrl)
+            .defaultHeader("Content-Type", "application/json")
+            .build()
+
+    @Bean
+    fun notificationWebClient(builder: WebClient.Builder): WebClient =
+        builder
+            .baseUrl(restProperties.webClients.notification.baseUrl)
+            .defaultHeader("Content-Type", "application/json")
+            .build()
 }

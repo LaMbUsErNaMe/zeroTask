@@ -1,8 +1,8 @@
 package com.example.zero.controller
 
-import com.example.zero.controller.dto.process.ContinueOrderProcessRequest
+import com.example.zero.controller.dto.process.ComplianceDecisionRequest
 import java.util.UUID
 
 interface ProcessController {
-    fun continueOrderConfirmation(orderId: UUID, request: ContinueOrderProcessRequest)
+    fun completeCompliance(orderId: UUID, request: ComplianceDecisionRequest)
 }

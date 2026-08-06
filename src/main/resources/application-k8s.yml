@@ -43,6 +43,9 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
     listener:
       ack-mode: record
       concurrency: 1
@@ -61,6 +64,21 @@ rest:
       retry-attempts: 2
       min-backoff: 1
       max-backoff: 5
+    contract:
+      base-url: ${CONTRACT_SERVICE_URL:http://contract-service:8080}
+      path: /contracts
+      cancel-path: /contracts/{contractId}
+    delivery:
+      base-url: ${DELIVERY_SERVICE_URL:http://delivery-service:8080}
+      path: /deliveries
+      cancel-path: /deliveries/{orderId}
+    payment:
+      base-url: ${PAYMENT_SERVICE_URL:http://payment-service:8080}
+      path: /payments
+      rollback-path: /payments/{orderId}/rollback
+    notification:
+      base-url: ${NOTIFICATION_SERVICE_URL:http://notification-service:8080}
+      path: /notifications
   integration-executor:
     core-pool-size: 10
     max-pool-size: 10

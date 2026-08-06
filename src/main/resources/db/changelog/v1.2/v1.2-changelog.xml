@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+    <changeSet id="v1.2-order-orchestration-fields" author="Vlad">
+        <comment>added two columns delivery_date and process_business_key</comment>
+        <addColumn tableName="order">
+            <column name="delivery_date" type="date"/>
+            <column name="process_business_key" type="varchar(64)"/>
+        </addColumn>
+        <addUniqueConstraint tableName="order"
+                             columnNames="process_business_key"
+                             constraintName="uk_order_process_business_key"/>
+        <rollback>
+            <dropUniqueConstraint tableName="order" constraintName="uk_order_process_business_key"/>
+            <dropColumn tableName="order" columnName="process_business_key"/>
+            <dropColumn tableName="order" columnName="delivery_date"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

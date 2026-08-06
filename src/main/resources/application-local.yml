@@ -7,6 +7,8 @@ app:
   kafka:
     enabled: true
     debug-producer-enabled: true
+  compliance:
+    stub-enabled: false
 spring:
   servlet:
     multipart:
@@ -39,6 +41,9 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
     listener:
       ack-mode: record
       concurrency: 1
@@ -56,6 +61,21 @@ rest:
       retry-attempts: 2
       min-backoff: 1
       max-backoff: 5
+    contract:
+      base-url: http://localhost:8083
+      path: /contracts
+      cancel-path: /contracts/{contractId}
+    delivery:
+      base-url: http://localhost:8084
+      path: /deliveries
+      cancel-path: /deliveries/{orderId}
+    payment:
+      base-url: http://localhost:8087
+      path: /payments
+      rollback-path: /payments/{orderId}/rollback
+    notification:
+      base-url: http://localhost:8088
+      path: /notifications
   integration-executor:
     core-pool-size: 10
     max-pool-size: 10

@@ -1,6 +1,6 @@
 package com.example.zero.controller
 
-import com.example.zero.controller.dto.process.ContinueOrderProcessRequest
+import com.example.zero.controller.dto.process.ComplianceDecisionRequest
 import com.example.zero.orchestartor.OrderConfirmationProcessService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -18,12 +18,12 @@ class ProcessControllerImpl(
     private val orderConfirmationProcessService: OrderConfirmationProcessService,
 ) : ProcessController {
 
-    @PostMapping("/{orderId}/continue")
+    @PostMapping("/{orderId}/compliance")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    override fun continueOrderConfirmation(
+    override fun completeCompliance(
         @PathVariable orderId: UUID,
-        @Valid @RequestBody request: ContinueOrderProcessRequest,
+        @Valid @RequestBody request: ComplianceDecisionRequest,
     ) {
-        orderConfirmationProcessService.continueProcess(orderId, request)
+        orderConfirmationProcessService.completeCompliance(orderId, request)
     }
 }
