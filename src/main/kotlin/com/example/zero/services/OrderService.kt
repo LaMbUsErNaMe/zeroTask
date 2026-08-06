@@ -7,6 +7,8 @@ import com.example.zero.services.dto.order.CreateOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderServiceDto
 import com.example.zero.services.dto.order.PatchOrderStatusServiceDto
 import java.util.UUID
+import java.time.LocalDate
+import com.example.zero.services.dto.order.OrderConfirmationContext
 
 interface OrderService {
 
@@ -24,13 +26,19 @@ interface OrderService {
 
     fun canStartConfirmation(customerId: Long, id: UUID): Boolean
 
-    fun markConfirmationPending(customerId: Long, id: UUID)
+    fun getConfirmationContext(customerId: Long, id: UUID): OrderConfirmationContext
+
+    fun startProcessing(customerId: Long, id: UUID, businessKey: String)
+
+    fun completeConfirmation(id: UUID, deliveryDate: LocalDate)
 
     fun confirmationValidation(customerId: Long, id: UUID): ConfirmationValidationResult
 
     fun releaseReservation(id: UUID)
 
     fun rejectConfirmation(id: UUID, reason: String?)
+
+    fun cancelConfirmation(id: UUID, reason: String?)
 
     fun patchStatus(id: UUID, dto: PatchOrderStatusServiceDto)
 

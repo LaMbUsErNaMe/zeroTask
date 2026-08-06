@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.util.UUID
+import java.time.LocalDate
 
 interface OrderRepository : JpaRepository<OrderEntity, UUID>, JpaSpecificationExecutor<OrderEntity> {
     @Modifying(
@@ -34,6 +35,31 @@ interface OrderRepository : JpaRepository<OrderEntity, UUID>, JpaSpecificationEx
         @Param("id") id: UUID,
         @Param("expectedStatus") expectedStatus: OrderStatusType,
         @Param("newStatus") newStatus: OrderStatusType,
+    ): Int
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+        UPDATE OrderEntity o
+        SET o.status = :newStatus, o.processBusinessKey = :businessKey
+        WHERE o.id = :id AND o.status = :expectedStatus
+    """)
+    fun startProcessing(
+        @Param("id") id: UUID,
+        @Param("expectedStatus") expectedStatus: OrderStatusType,
+        @Param("newStatus") newStatus: OrderStatusType,
+        @Param("businessKey") businessKey: String,
+    ): Int
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+        UPDATE OrderEntity o
+        SET o.status = :status, o.deliveryDate = :deliveryDate
+        WHERE o.id = :id
+    """)
+    fun completeConfirmation(
+        @Param("id") id: UUID,
+        @Param("status") status: OrderStatusType,
+        @Param("deliveryDate") deliveryDate: LocalDate,
     ): Int
 
     @Query("""
