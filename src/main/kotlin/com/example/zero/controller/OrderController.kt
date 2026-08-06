@@ -13,7 +13,7 @@ interface OrderController {
 
     fun patch(customerId: Long, id: UUID, @Valid request: PatchOrderRequest)
 
-    fun confirm(customerId: Long, id: UUID)
+    fun confirm(customerId: Long, id: UUID): String
 
     fun getById(customerId: Long, id: UUID): ResponseOrder
 

@@ -11,9 +11,30 @@ import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface OrderRepository : JpaRepository<OrderEntity, UUID>, JpaSpecificationExecutor<OrderEntity> {
-    @Modifying
+    @Modifying(
+        flushAutomatically = true,
+        clearAutomatically = true,
+    )
     @Query("UPDATE OrderEntity o SET o.status = :status WHERE o.id = :id")
-    fun updateStatus(@Param("id") id: UUID, @Param("status") status: OrderStatusType): Int
+    fun updateStatus(
+        @Param("id") id: UUID,
+        @Param("status") status: OrderStatusType
+    ): Int
+
+    @Modifying(
+        flushAutomatically = true,
+        clearAutomatically = true,
+    )
+    @Query("""
+        UPDATE OrderEntity o
+        SET o.status = :newStatus
+        WHERE o.id = :id AND o.status = :expectedStatus
+    """)
+    fun updateStatusIfCurrent(
+        @Param("id") id: UUID,
+        @Param("expectedStatus") expectedStatus: OrderStatusType,
+        @Param("newStatus") newStatus: OrderStatusType,
+    ): Int
 
     @Query("""
     select new com.example.zero.projections.OrderInfoProjection(

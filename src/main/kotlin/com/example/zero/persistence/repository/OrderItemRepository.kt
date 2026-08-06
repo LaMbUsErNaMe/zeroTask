@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface OrderItemRepository : JpaRepository<OrderItemEntity, UUID> {
+    fun existsByOrderId(orderId: UUID): Boolean
+
     @Query("""
         SELECT new com.example.zero.projections.OrderItemProjection(p.id, p.name, i.quantity, i.productPrice)
         FROM OrderItemEntity i

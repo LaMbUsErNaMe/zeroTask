@@ -8,6 +8,7 @@ import com.example.zero.controller.dto.order.response.ResponseOrder
 import com.example.zero.extension.toCreateOrderServiceDto
 import com.example.zero.extension.toPatchOrderServiceDto
 import com.example.zero.extension.toPatchOrderStatusServiceDto
+import com.example.zero.orchestartor.OrderConfirmationProcessService
 import com.example.zero.services.OrderService
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
@@ -29,7 +30,8 @@ import java.util.UUID
 @Validated
 @RequestMapping("/order")
 class OrderControllerImpl(
-    private val orderService: OrderService
+    private val orderService: OrderService,
+    private val orderConfirmationProcessService: OrderConfirmationProcessService
 ) : OrderController {
 
     @Operation(summary = "Создать заказ")
@@ -52,9 +54,9 @@ class OrderControllerImpl(
 
     @Operation(summary = "Подтвердить заказ")
     @PostMapping("/{id}/status")
-    @ResponseStatus(HttpStatus.CREATED)
-    override fun confirm(@RequestHeader("CustomerId") customerId: Long, @PathVariable id: UUID) {
-        return orderService.confirm(customerId, id)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    override fun confirm(@RequestHeader("CustomerId") customerId: Long, @PathVariable id: UUID): String {
+        return orderConfirmationProcessService.start(customerId, id)
     }
 
     @Operation(summary = "Получить заказ по идентификатору")

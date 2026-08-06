@@ -2,6 +2,7 @@ package com.example.zero.enums
 
 enum class OrderStatusType {
     CREATED,
+    CONFIRMATION_PENDING,
     CONFIRMED,
     CANCELED,
     DONE,
