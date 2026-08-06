@@ -1,8 +1,8 @@
 package com.example.zero.services
 
 import com.example.zero.enums.CategoryType
-import com.example.zero.exception.DuplicateException
-import com.example.zero.exception.NotFoundException
+import io.github.lambusername.exceptionhandler.DuplicateException
+import io.github.lambusername.exceptionhandler.NotFoundException
 import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
 import com.example.zero.persistence.repository.ProductRepository

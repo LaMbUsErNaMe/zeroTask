@@ -1,7 +1,7 @@
 package com.example.zero.search.strategy
 
 import com.example.zero.enums.OperationType
-import com.example.zero.exception.ParsingException
+import io.github.lambusername.exceptionhandler.ParsingException
 import com.example.zero.persistence.entity.ProductEntity
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.Predicate

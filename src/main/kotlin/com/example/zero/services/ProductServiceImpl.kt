@@ -2,8 +2,8 @@ package com.example.zero.services
 
 import com.example.zero.annotation.MeasureExecTime
 import com.example.zero.controller.dto.product.request.search.SearchFilterDto
-import com.example.zero.exception.DuplicateException
-import com.example.zero.exception.NotFoundException
+import io.github.lambusername.exceptionhandler.DuplicateException
+import io.github.lambusername.exceptionhandler.NotFoundException
 import com.example.zero.extension.toProductDto
 import com.example.zero.extension.toProductEntity
 import com.example.zero.persistence.entity.ProductEntity
